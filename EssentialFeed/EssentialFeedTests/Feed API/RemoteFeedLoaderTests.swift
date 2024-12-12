@@ -130,7 +130,6 @@ struct RemoteFeedLoaderTests {
     }
     
     private func expect(_ sut: RemoteFeedLoader, toCompleteWithResult expectedResult: RemoteFeedLoader.Result, when action: @escaping () -> Void, sourceLocation: SourceLocation = #_sourceLocation) {
-        
         Task {
             await confirmation("Load completion") { loaded in
                 sut.load { receivedResult in
