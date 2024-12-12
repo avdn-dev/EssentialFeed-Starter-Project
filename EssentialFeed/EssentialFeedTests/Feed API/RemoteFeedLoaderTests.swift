@@ -42,7 +42,7 @@ struct RemoteFeedLoaderTests {
     func feedLoaderDeliversConnectivityErrorOnClientError() {
         let (sut, client) = makeSUT()
         
-        expect(sut, toCompleteWithResult: .failure(.connectivity)) {
+        expect(sut, toCompleteWithResult: failure(.connectivity)) {
             let clientError = NSError(domain: "Test", code: 0)
             client.complete(with: clientError)
         }
@@ -52,7 +52,7 @@ struct RemoteFeedLoaderTests {
     func feedLoaderDeliversErrorOnNon200HttpResponse(statusCode code: Int) {
         let (sut, client) = makeSUT()
         
-        expect(sut, toCompleteWithResult: .failure(.invalidData)) {
+        expect(sut, toCompleteWithResult: failure(.invalidData)) {
             let json = makeItemsJson([])
             client.complete(withStatusCode: code, data: json)
         }
@@ -62,7 +62,7 @@ struct RemoteFeedLoaderTests {
     func feedLoaderDeliversErrorOn200HttpResponseWithInvalidJson() {
         let (sut, client) = makeSUT()
         
-        expect(sut, toCompleteWithResult: .failure(.invalidData)) {
+        expect(sut, toCompleteWithResult: failure(.invalidData)) {
             let invalidJson = "invalid json".data(using: .utf8)!
             client.complete(withStatusCode: 200, data: invalidJson)
         }
@@ -129,13 +129,29 @@ struct RemoteFeedLoaderTests {
         return try! JSONSerialization.data(withJSONObject: itemsJson)
     }
     
-    private func expect(_ sut: RemoteFeedLoader, toCompleteWithResult result: RemoteFeedLoader.Result, when action: () -> Void, sourceLocation: SourceLocation = #_sourceLocation) {
-        var capturedResults = [RemoteFeedLoader.Result]()
-        sut.load { capturedResults.append($0) }
+    private func expect(_ sut: RemoteFeedLoader, toCompleteWithResult expectedResult: RemoteFeedLoader.Result, when action: @escaping () -> Void, sourceLocation: SourceLocation = #_sourceLocation) {
         
-        action()
-        
-        #expect(capturedResults == [result], sourceLocation: sourceLocation)
+        Task {
+            await confirmation("Load completion") { loaded in
+                sut.load { receivedResult in
+                    switch (receivedResult, expectedResult) {
+                    case let (.success(receivedItems), .success(expectedItems)): #expect(receivedItems == expectedItems, sourceLocation: sourceLocation)
+                        
+                    case let (.failure(receivedError as RemoteFeedLoader.Error), .failure(expectedError as RemoteFeedLoader.Error)): #expect(receivedError == expectedError, sourceLocation: sourceLocation)
+                        
+                    default: #expect(Bool(false), sourceLocation: sourceLocation)
+                    }
+                    
+                    loaded()
+                }
+                
+                action()
+            }
+        }
+    }
+    
+    private func failure(_ error: RemoteFeedLoader.Error) -> RemoteFeedLoader.Result {
+        .failure(error)
     }
     
     private class HTTPClientSpy: HTTPClient {
