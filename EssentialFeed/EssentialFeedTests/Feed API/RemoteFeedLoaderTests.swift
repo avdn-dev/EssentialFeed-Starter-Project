@@ -9,7 +9,15 @@ import Foundation
 import Testing
 import EssentialFeed
 
-struct RemoteFeedLoaderTests {
+final class RemoteFeedLoaderTests {
+    private var sutTracker: MemoryLeakTracker<RemoteFeedLoader>?
+    private var clientTracker: MemoryLeakTracker<HTTPClientSpy>?
+    
+    deinit {
+        sutTracker?.verifyDeallocation()
+        clientTracker?.verifyDeallocation()
+    }
+    
     @Test("Initialised feed loader does not request data")
     func initialisedFeedLoaderDoesntRequestData() {
         let (_, client) = makeSUT()
@@ -39,47 +47,47 @@ struct RemoteFeedLoaderTests {
     }
     
     @Test("Feed loader delivers connectivity error on client error")
-    func feedLoaderDeliversConnectivityErrorOnClientError() {
+    func feedLoaderDeliversConnectivityErrorOnClientError() async {
         let (sut, client) = makeSUT()
         
-        expect(sut, toCompleteWithResult: failure(.connectivity)) {
+        await expect(sut, toCompleteWithResult: failure(.connectivity)) {
             let clientError = NSError(domain: "Test", code: 0)
             client.complete(with: clientError)
         }
     }
     
     @Test("Feed loader delivers error on non 200 HTTP response", arguments: [199, 201, 300, 400, 500])
-    func feedLoaderDeliversErrorOnNon200HttpResponse(statusCode code: Int) {
+    func feedLoaderDeliversErrorOnNon200HttpResponse(statusCode code: Int) async {
         let (sut, client) = makeSUT()
         
-        expect(sut, toCompleteWithResult: failure(.invalidData)) {
-            let json = makeItemsJson([])
+        await expect(sut, toCompleteWithResult: failure(.invalidData)) {
+            let json = self.makeItemsJson([])
             client.complete(withStatusCode: code, data: json)
         }
     }
     
     @Test("Feed loader delivers error on 200 HTTP response with invalid JSON")
-    func feedLoaderDeliversErrorOn200HttpResponseWithInvalidJson() {
+    func feedLoaderDeliversErrorOn200HttpResponseWithInvalidJson() async {
         let (sut, client) = makeSUT()
         
-        expect(sut, toCompleteWithResult: failure(.invalidData)) {
+        await expect(sut, toCompleteWithResult: failure(.invalidData)) {
             let invalidJson = "invalid json".data(using: .utf8)!
             client.complete(withStatusCode: 200, data: invalidJson)
         }
     }
     
     @Test("Feed loader delivers no items on 200 HTTP response with empty JSON list")
-    func feedLoaderDeliversNoItemsOn200HttpResponseWithEmptyJson() {
+    func feedLoaderDeliversNoItemsOn200HttpResponseWithEmptyJson() async {
         let (sut, client) = makeSUT()
         
-        expect(sut, toCompleteWithResult: .success([])) {
-            let emptyListJson = makeItemsJson([])
+        await expect(sut, toCompleteWithResult: .success([])) {
+            let emptyListJson = self.makeItemsJson([])
             client.complete(withStatusCode: 200, data: emptyListJson)
         }
     }
     
     @Test("Feed loader delivers items on 200 HTTP response with JSON items")
-    func feedLoaderDeliversItemsOn200HttpResponseWithJson() {
+    func feedLoaderDeliversItemsOn200HttpResponseWithJson() async {
         let (sut, client) = makeSUT()
         
         let item1 = makeItem(id: UUID(), imageUrl: URL(string: "http://a-url.com")!)
@@ -88,17 +96,17 @@ struct RemoteFeedLoaderTests {
         
         let items = [item1.model, item2.model]
         
-        expect(sut, toCompleteWithResult: .success(items)) {
-            let json = makeItemsJson([item1.json, item2.json])
+        await expect(sut, toCompleteWithResult: .success(items)) {
+            let json = self.makeItemsJson([item1.json, item2.json])
             client.complete(withStatusCode: 200, data: json)
         }
     }
     
     @Test("Feed loader delivers no items after sut instance has been deallocated")
     func feedLoaderDeliversNoItemsAfterSutInstanceDeallocated() {
-        let url = URL(string: "https://a-url.com")!
-        let client = HTTPClientSpy()
-        var sut: RemoteFeedLoader? = RemoteFeedLoader(url: url, client: client)
+        var sut: RemoteFeedLoader?
+        let client: HTTPClientSpy
+        (sut, client) = makeSUT()
         
         var capturedResults = [RemoteFeedLoader.Result]()
         sut?.load { capturedResults.append($0) }
@@ -111,9 +119,11 @@ struct RemoteFeedLoaderTests {
     }
     
     // MARK: Helpers
-    private func makeSUT(url: URL = URL(string: "https://a-url.com")!) -> (sut: RemoteFeedLoader, client: HTTPClientSpy) {
+    private func makeSUT(url: URL = URL(string: "https://a-url.com")!, sourceLocation: SourceLocation = #_sourceLocation) -> (sut: RemoteFeedLoader, client: HTTPClientSpy) {
         let client = HTTPClientSpy()
         let sut = RemoteFeedLoader(url: url, client: client)
+        sutTracker = MemoryLeakTracker(instance: sut, sourceLocation: sourceLocation)
+        clientTracker = MemoryLeakTracker(instance: client, sourceLocation: sourceLocation)
         return (sut, client)
     }
     
@@ -129,13 +139,12 @@ struct RemoteFeedLoaderTests {
         return try! JSONSerialization.data(withJSONObject: itemsJson)
     }
     
-    private func expect(_ sut: RemoteFeedLoader, toCompleteWithResult expectedResult: RemoteFeedLoader.Result, when action: @escaping () -> Void, sourceLocation: SourceLocation = #_sourceLocation) {
-        Task {
+    private func expect(_ sut: RemoteFeedLoader, toCompleteWithResult expectedResult: RemoteFeedLoader.Result, when action: @escaping () -> Void, sourceLocation: SourceLocation = #_sourceLocation) async {
             await confirmation("Load completion") { loaded in
                 sut.load { receivedResult in
                     switch (receivedResult, expectedResult) {
                     case let (.success(receivedItems), .success(expectedItems)): #expect(receivedItems == expectedItems, sourceLocation: sourceLocation)
-                        
+                    
                     case let (.failure(receivedError as RemoteFeedLoader.Error), .failure(expectedError as RemoteFeedLoader.Error)): #expect(receivedError == expectedError, sourceLocation: sourceLocation)
                         
                     default: #expect(Bool(false), sourceLocation: sourceLocation)
@@ -145,7 +154,6 @@ struct RemoteFeedLoaderTests {
                 }
                 
                 action()
-            }
         }
     }
     
