@@ -37,7 +37,7 @@ struct EssentialFeedAPIEndToEndTests {
     // MARK: Helpers
     private func getFeedResult() async -> LoadFeedResult? {
         let testServerUrl = URL(string: "https://essentialdeveloper.com/feed-case-study/test-api/feed")!
-        let client = URLSessionHTTPClient()
+        let client = URLSessionHTTPClient(session: URLSession(configuration: .ephemeral))
         let loader = RemoteFeedLoader(url: testServerUrl, client: client)
         
         var receivedResult: LoadFeedResult?
