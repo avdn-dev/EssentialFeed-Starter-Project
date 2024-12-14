@@ -1,5 +1,5 @@
 //
-//  RemoteFeedLoaderTests.swift
+//  LoadFeedFromRemoteUseCaseTests.swift
 //  EssentialFeedTests
 //
 //  Created by Anh Nguyen on 3/12/2024.
@@ -9,7 +9,7 @@ import Foundation
 import Testing
 import EssentialFeed
 
-final class RemoteFeedLoaderTests {
+final class LoadFeedFromRemoteUseCaseTests {
     private var sutTracker: MemoryLeakTracker<RemoteFeedLoader>?
     private var clientTracker: MemoryLeakTracker<HTTPClientSpy>?
     
