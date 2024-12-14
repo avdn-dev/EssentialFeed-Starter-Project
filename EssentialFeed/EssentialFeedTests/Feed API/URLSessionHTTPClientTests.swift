@@ -15,13 +15,16 @@ private extension Duration {
 
 // Serialised due to data races on URLProtocolStub if tests run in parallel
 @Suite(.serialized)
-class URLSessionHTTPClientTests {
+final class URLSessionHTTPClientTests {
+    private var sutTracker: MemoryLeakTracker<URLSessionHTTPClient>?
+    
     init() {
         URLProtocolStub.startInterceptingRequests()
     }
     
     deinit {
         URLProtocolStub.stopInterceptingRequests()
+        sutTracker?.verifyDeallocation()
     }
     
     @Test("Get from URL performs GET request")
@@ -90,7 +93,11 @@ class URLSessionHTTPClientTests {
     }
     
     // MARK: Helpers
-    private func makeSut() -> HTTPClient { URLSessionHTTPClient() }
+    private func makeSut(sourceLocation: SourceLocation = #_sourceLocation) -> HTTPClient {
+        let sut = URLSessionHTTPClient()
+        sutTracker = MemoryLeakTracker(instance: sut, sourceLocation: sourceLocation)
+        return sut
+    }
     
     private func anyUrl() -> URL { URL(string: "https://a-url.com")! }
     
