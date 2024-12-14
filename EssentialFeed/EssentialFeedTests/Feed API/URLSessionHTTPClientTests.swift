@@ -9,11 +9,7 @@ import Foundation
 import Testing
 import EssentialFeed
 
-private extension Duration {
-    static var sleepTime: Self { .milliseconds(20) }
-}
-
-// Serialised due to data races on URLProtocolStub if tests run in parallel
+// Serialised due to illegal continuation occuring on multiple threads when tests run in parallel
 @Suite(.serialized)
 final class URLSessionHTTPClientTests {
     private var sutTracker: MemoryLeakTracker<URLSessionHTTPClient>?
@@ -32,17 +28,17 @@ final class URLSessionHTTPClientTests {
         let url = anyUrl()
         
         await confirmation("Request completion") { completed in
-            URLProtocolStub.observeRequests { request in
-                #expect(request.url == url)
-                #expect(request.httpMethod == "GET")
+            await withCheckedContinuation { continuation in
+                URLProtocolStub.observeRequests { request in
+                    #expect(request.url == url)
+                    #expect(request.httpMethod == "GET")
+                    continuation.resume()
+                    
+                    completed()
+                }
                 
-                completed()
+                makeSut().get(from: url) { _ in }
             }
-            
-            makeSut().get(from: url) { _ in }
-            
-            // The Confirmation API does not wait until confirmation has occured while XCTest fulfillments do
-            try? await Task.sleep(for: .sleepTime)
         }
     }
     
@@ -137,18 +133,19 @@ final class URLSessionHTTPClientTests {
         URLProtocolStub.stub(data: data, response: response, error: error)
         
         var receivedResult: HTTPClientResult!
+        
         await confirmation("Load completion", sourceLocation: sourceLocation) { completed in
-            makeSut().get(from: anyUrl()) { result in
-                receivedResult = result
-                
-                completed()
+            await withCheckedContinuation { continuation in
+                makeSut().get(from: anyUrl()) { result in
+                    receivedResult = result
+                    continuation.resume()
+                    
+                    completed()
+                }
             }
-            
-            try? await Task.sleep(for: .sleepTime)
         }
         
         return receivedResult
-        
     }
     
     private class URLProtocolStub: URLProtocol {
