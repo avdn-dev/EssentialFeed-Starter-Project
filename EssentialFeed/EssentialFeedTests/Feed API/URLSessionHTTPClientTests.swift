@@ -112,8 +112,7 @@ final class URLSessionHTTPClientTests {
         case let .success(data, response):
             return (data, response)
         default:
-            
-            #expect(Bool(false), "Expected success, got \(result) instead", sourceLocation: sourceLocation)
+            Issue.record("Expected success, got \(result) instead", sourceLocation: sourceLocation)
             return nil
         }
     }
@@ -125,7 +124,7 @@ final class URLSessionHTTPClientTests {
         case let .failure(error):
             return error
         default:
-            #expect(Bool(false), "Expected failure, got \(result) instead", sourceLocation: sourceLocation)
+            Issue.record("Expected success, failure \(result) instead", sourceLocation: sourceLocation)
             return nil
         }
     }

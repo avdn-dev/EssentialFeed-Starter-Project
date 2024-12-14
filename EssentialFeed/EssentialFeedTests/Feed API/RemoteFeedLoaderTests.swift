@@ -144,10 +144,9 @@ final class RemoteFeedLoaderTests {
                 sut.load { receivedResult in
                     switch (receivedResult, expectedResult) {
                     case let (.success(receivedItems), .success(expectedItems)): #expect(receivedItems == expectedItems, sourceLocation: sourceLocation)
-                    
                     case let (.failure(receivedError as RemoteFeedLoader.Error), .failure(expectedError as RemoteFeedLoader.Error)): #expect(receivedError == expectedError, sourceLocation: sourceLocation)
-                        
-                    default: #expect(Bool(false), sourceLocation: sourceLocation)
+                    default:
+                        Issue.record("Expected \(expectedResult), got \(receivedResult) instead", sourceLocation: sourceLocation)
                     }
                     
                     loaded()

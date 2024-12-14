@@ -28,9 +28,9 @@ struct EssentialFeedAPIEndToEndTests {
             #expect(items[6] == expectedItem(at: 6))
             #expect(items[7] == expectedItem(at: 7))
         case let .failure(error)?:
-            #expect(Bool(false), "Expected successful feed result, got \(error) instead")
+            Issue.record("Expected successful feed result, got \(error) instead")
         default:
-            #expect(Bool(false), "Expected successful feed result, got nil instead")
+            Issue.record("Expected successful feed result, got nil instead")
         }
     }
     
