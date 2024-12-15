@@ -11,15 +11,17 @@ import Foundation
 
 class LocalFeedLoader {
     let store: FeedStore
+    let currentDate: () -> Date
     
-    init(store: FeedStore) {
+    init(store: FeedStore, currentDate: @escaping () -> Date) {
         self.store = store
+        self.currentDate = currentDate
     }
     
     func save(_ items: [FeedItem]) {
         store.deleteCachedFeed { [unowned self] error in
             if error == nil {
-                self.store.insert(items)
+                store.insert(items, at: currentDate())
             }
         }
     }
@@ -29,6 +31,7 @@ class FeedStore {
     typealias DeletionCompletion = (Error?) -> Void
     var deleteCachedFeedCallCount = 0
     var insertCallCount = 0
+    var insertions = [(items: [FeedItem], timestamp: Date)]()
     
     private var deletionCompletions = [DeletionCompletion]()
     
@@ -45,8 +48,10 @@ class FeedStore {
         deletionCompletions[index](nil)
     }
     
-    func insert(_ items: [FeedItem]) {
+    func insert(_ items: [FeedItem], at timestamp: Date) {
         insertCallCount += 1
+        insertions.append((items, timestamp))
+        
     }
 }
 
@@ -99,10 +104,24 @@ final class CacheFeedUseCaseTests {
         #expect(store.insertCallCount == 1)
     }
     
+    @Test("Save requests cache insertion with timestamp on successful deletion")
+    func saveRequestsCacheInsertionWithTimestampOnSuccessfulDeletion() {
+        let timestamp = Date()
+        let (sut, store) = makeSut(currentDate: { timestamp })
+        let items = [makeUniqueItem(), makeUniqueItem()]
+        
+        sut.save(items)
+        store.completeDeletionSuccessfully()
+        
+        #expect(store.insertions.count == 1)
+        #expect(store.insertions.first?.items == items)
+        #expect(store.insertions.first?.timestamp == timestamp)
+    }
+    
     // MARK: Helpers
-    private func makeSut(sourceLocation: SourceLocation = #_sourceLocation) -> (sut: LocalFeedLoader, store: FeedStore) {
+    private func makeSut(currentDate: @escaping () -> Date = Date.init, sourceLocation: SourceLocation = #_sourceLocation) -> (sut: LocalFeedLoader, store: FeedStore) {
         let store = FeedStore()
-        let sut = LocalFeedLoader(store: store)
+        let sut = LocalFeedLoader(store: store, currentDate: currentDate)
         sutTracker = MemoryLeakTracker(instance: sut, sourceLocation: sourceLocation)
         storeTracker = MemoryLeakTracker(instance: store, sourceLocation: sourceLocation)
         return (sut, store)
