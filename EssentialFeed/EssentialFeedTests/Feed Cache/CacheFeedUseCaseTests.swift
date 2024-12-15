@@ -32,16 +32,14 @@ class FeedStore {
 struct CacheFeedUseCaseTests {
     @Test("LocalFeedLoader initialiser does not delete cache")
     func initialiserDoesNotDeleteCache() {
-        let store = FeedStore()
-        let _ = LocalFeedLoader(store: store)
+        let (_, store) = makeSut()
         
         #expect(store.deleteCachedFeedCallCount == 0)
     }
     
     @Test("Save requests cache deletion")
     func saveRequestsCacheDeletion() {
-        let store = FeedStore()
-        let sut = LocalFeedLoader(store: store)
+        let (sut, store) = makeSut()
         let items = [makeUniqueItem(), makeUniqueItem()]
         sut.save(items)
         
@@ -49,6 +47,12 @@ struct CacheFeedUseCaseTests {
     }
     
     // MARK: Helpers
+    private func makeSut() -> (sut: LocalFeedLoader, store: FeedStore) {
+        let store = FeedStore()
+        let sut = LocalFeedLoader(store: store)
+        return (sut, store)
+    }
+    
     private func makeUniqueItem() -> FeedItem { FeedItem(id: UUID(), description: nil, location: nil, imageUrl: makeUrl()) }
     
     private func makeUrl() -> URL { URL(string: "https://a-url.com")! }
