@@ -25,7 +25,7 @@ final class URLSessionHTTPClientTests {
     
     @Test("Get from URL performs GET request")
     func getFromUrlPerformsGetRequestWithUrl() async {
-        let url = anyUrl()
+        let url = makeUrl()
         
         await confirmation("Request completion") { completed in
             await withCheckedContinuation { continuation in
@@ -44,7 +44,7 @@ final class URLSessionHTTPClientTests {
     
     @Test("Get from URL fails on request error")
     func getFromUrlFailsOnRequestError() async {
-        let requestError = anyNsError()
+        let requestError = makeNsError()
         let receivedError = await resultErrorFor(data: nil, response: nil, error: requestError) as? NSError
         
         #expect(receivedError?.domain == requestError.domain)
@@ -54,20 +54,20 @@ final class URLSessionHTTPClientTests {
     @Test("Get from URL fails on all invalid combinations values")
     func getFromUrlFailsOnAllInvalidRepresentationCases() async {
         #expect(await resultErrorFor(data: nil, response: nil, error: nil) != nil)
-        #expect(await resultErrorFor(data: nil, response: anyNonHttpUrlResponse(), error: nil) != nil)
-        #expect(await resultErrorFor(data: anyData(), response: nil, error: nil) != nil)
-        #expect(await resultErrorFor(data: anyData(), response: nil, error: anyNsError()) != nil)
-        #expect(await resultErrorFor(data: nil, response: anyNonHttpUrlResponse(), error: anyNsError()) != nil)
-        #expect(await resultErrorFor(data: nil, response: anyHttpUrlResponse(), error: anyNsError()) != nil)
-        #expect(await resultErrorFor(data: anyData(), response: anyNonHttpUrlResponse(), error: anyNsError()) != nil)
-        #expect(await resultErrorFor(data: anyData(), response: anyHttpUrlResponse(), error: anyNsError()) != nil)
-        #expect(await resultErrorFor(data: anyData(), response: anyNonHttpUrlResponse(), error: nil) != nil)
+        #expect(await resultErrorFor(data: nil, response: makeNonHttpUrlResponse(), error: nil) != nil)
+        #expect(await resultErrorFor(data: makeData(), response: nil, error: nil) != nil)
+        #expect(await resultErrorFor(data: makeData(), response: nil, error: makeNsError()) != nil)
+        #expect(await resultErrorFor(data: nil, response: makeNonHttpUrlResponse(), error: makeNsError()) != nil)
+        #expect(await resultErrorFor(data: nil, response: makeHttpUrlResponse(), error: makeNsError()) != nil)
+        #expect(await resultErrorFor(data: makeData(), response: makeNonHttpUrlResponse(), error: makeNsError()) != nil)
+        #expect(await resultErrorFor(data: makeData(), response: makeHttpUrlResponse(), error: makeNsError()) != nil)
+        #expect(await resultErrorFor(data: makeData(), response: makeNonHttpUrlResponse(), error: nil) != nil)
     }
     
     @Test("Get from URL succeeds on HTTPURLResponse with data")
     func getFromUrlSucceedsOnHttpUrlResponseWithData() async {
-        let data = anyData()
-        let response = anyHttpUrlResponse()
+        let data = makeData()
+        let response = makeHttpUrlResponse()
         
         let receivedValues = await resultValuesFor(data: data, response: response, error: nil)
         
@@ -78,7 +78,7 @@ final class URLSessionHTTPClientTests {
     
     @Test("Get from URL succeeds with empty data on HTTPURLResponse with nil data")
     func getFromUrlSucceedsWithEmptyDataOnHttpUrlResponseWithNilData() async {
-        let response = anyHttpUrlResponse()
+        let response = makeHttpUrlResponse()
         let receivedValues = await resultValuesFor(data: nil, response: response, error: nil)
         
         let emptyData = Data()
@@ -95,15 +95,15 @@ final class URLSessionHTTPClientTests {
         return sut
     }
     
-    private func anyUrl() -> URL { URL(string: "https://a-url.com")! }
+    private func makeUrl() -> URL { URL(string: "https://a-url.com")! }
     
-    private func anyData() -> Data? { "any data".data(using: .utf8) }
+    private func makeData() -> Data? { "any data".data(using: .utf8) }
     
-    private func anyNsError() -> NSError { NSError(domain: "any error", code: 1) }
+    private func makeNsError() -> NSError { NSError(domain: "any error", code: 1) }
     
-    private func anyHttpUrlResponse() -> HTTPURLResponse { HTTPURLResponse(url: anyUrl(), statusCode: 200, httpVersion: nil, headerFields: nil)! }
+    private func makeHttpUrlResponse() -> HTTPURLResponse { HTTPURLResponse(url: makeUrl(), statusCode: 200, httpVersion: nil, headerFields: nil)! }
     
-    private func anyNonHttpUrlResponse() -> URLResponse { URLResponse(url: anyUrl(), mimeType: nil, expectedContentLength: 0, textEncodingName: nil) }
+    private func makeNonHttpUrlResponse() -> URLResponse { URLResponse(url: makeUrl(), mimeType: nil, expectedContentLength: 0, textEncodingName: nil) }
     
     private func resultValuesFor(data: Data?, response: URLResponse, error: Error?, sourceLocation: SourceLocation = #_sourceLocation) async -> (data: Data, response: HTTPURLResponse)? {
         let result = await resultFor(data: data, response: response, error: error)
@@ -136,7 +136,7 @@ final class URLSessionHTTPClientTests {
         
         await confirmation("Load completion", sourceLocation: sourceLocation) { completed in
             await withCheckedContinuation { continuation in
-                makeSut().get(from: anyUrl()) { result in
+                makeSut().get(from: makeUrl()) { result in
                     receivedResult = result
                     continuation.resume()
                     
