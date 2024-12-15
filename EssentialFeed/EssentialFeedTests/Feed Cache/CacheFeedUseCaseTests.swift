@@ -123,62 +123,32 @@ final class CacheFeedUseCaseTests {
     @Test("Save fails on deletion error")
     func saveFailsOnDeletionError() async {
         let (sut, store) = makeSut()
-        let items = [makeUniqueItem(), makeUniqueItem()]
         let deletionError = makeNsError()
         
-        var receivedError: Error?
-        
-        await confirmation("Save completion") { completed in
-            sut.save(items) { error in
-                receivedError = error
-                completed()
-            }
-            
+        await expect(sut, toCompleteWithError: deletionError) {
             store.completeDeletion(with: deletionError)
         }
-        
-        #expect(receivedError as NSError? == deletionError)
     }
     
     @Test("Save fails on insertion error")
     func saveFailsOnInsertionError() async {
         let (sut, store) = makeSut()
-        let items = [makeUniqueItem(), makeUniqueItem()]
         let insertionError = makeNsError()
         
-        var receivedError: Error?
-        
-        await confirmation("Save completion") { completed in
-            sut.save(items) { error in
-                receivedError = error
-                completed()
-            }
-            
+        await expect(sut, toCompleteWithError: insertionError) {
             store.completeDeletionSuccessfully()
             store.completeInsertion(with: insertionError)
         }
-        
-        #expect(receivedError as NSError? == insertionError)
     }
     
     @Test("Save succeeds on successful cache insertion")
     func saveSucceedsOnSuccessfulCacheInsertion() async {
         let (sut, store) = makeSut()
-        let items = [makeUniqueItem(), makeUniqueItem()]
         
-        var receivedError: Error?
-        
-        await confirmation("Save completion") { completed in
-            sut.save(items) { error in
-                receivedError = error
-                completed()
-            }
-            
+        await expect(sut, toCompleteWithError: nil) {
             store.completeDeletionSuccessfully()
             store.completeInsertionSuccessfully()
         }
-        
-        #expect(receivedError == nil)
     }
     
     // MARK: Helpers
@@ -195,4 +165,19 @@ final class CacheFeedUseCaseTests {
     private func makeUrl() -> URL { URL(string: "https://a-url.com")! }
     
     private func makeNsError() -> NSError { NSError(domain: "any error", code: 1) }
+    
+    private func expect(_ sut: LocalFeedLoader, toCompleteWithError expectedError: NSError?, when action: () -> Void, sourceLocation: SourceLocation = #_sourceLocation) async {
+        var receivedError: Error?
+        
+        await confirmation("Save completion") { completed in
+            sut.save([makeUniqueItem()]) { error in
+                receivedError = error
+                completed()
+            }
+            
+            action()
+        }
+        
+        #expect(receivedError as? NSError == expectedError)
+    }
 }
