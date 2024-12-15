@@ -6,6 +6,8 @@
 //
 
 import Testing
+import EssentialFeed
+import Foundation
 
 class LocalFeedLoader {
     let store: FeedStore
@@ -13,10 +15,18 @@ class LocalFeedLoader {
     init(store: FeedStore) {
         self.store = store
     }
+    
+    func save(_ items: [FeedItem]) {
+        store.deleteCachedFeed()
+    }
 }
 
 class FeedStore {
     var deleteCachedFeedCallCount = 0
+    
+    func deleteCachedFeed() {
+        deleteCachedFeedCallCount = 1
+    }
 }
 
 struct CacheFeedUseCaseTests {
@@ -27,4 +37,19 @@ struct CacheFeedUseCaseTests {
         
         #expect(store.deleteCachedFeedCallCount == 0)
     }
+    
+    @Test("Save requests cache deletion")
+    func saveRequestsCacheDeletion() {
+        let store = FeedStore()
+        let sut = LocalFeedLoader(store: store)
+        let items = [makeUniqueItem(), makeUniqueItem()]
+        sut.save(items)
+        
+        #expect(store.deleteCachedFeedCallCount == 1)
+    }
+    
+    // MARK: Helpers
+    private func makeUniqueItem() -> FeedItem { FeedItem(id: UUID(), description: nil, location: nil, imageUrl: makeUrl()) }
+    
+    private func makeUrl() -> URL { URL(string: "https://a-url.com")! }
 }
