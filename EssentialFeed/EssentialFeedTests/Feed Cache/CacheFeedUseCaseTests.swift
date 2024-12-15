@@ -29,7 +29,15 @@ class FeedStore {
     }
 }
 
-struct CacheFeedUseCaseTests {
+final class CacheFeedUseCaseTests {
+    private var sutTracker: MemoryLeakTracker<LocalFeedLoader>?
+    private var storeTracker: MemoryLeakTracker<FeedStore>?
+    
+    deinit {
+        sutTracker?.verifyDeallocation()
+        storeTracker?.verifyDeallocation()
+    }
+    
     @Test("LocalFeedLoader initialiser does not delete cache")
     func initialiserDoesNotDeleteCache() {
         let (_, store) = makeSut()
@@ -47,9 +55,11 @@ struct CacheFeedUseCaseTests {
     }
     
     // MARK: Helpers
-    private func makeSut() -> (sut: LocalFeedLoader, store: FeedStore) {
+    private func makeSut(sourceLocation: SourceLocation = #_sourceLocation) -> (sut: LocalFeedLoader, store: FeedStore) {
         let store = FeedStore()
         let sut = LocalFeedLoader(store: store)
+        sutTracker = MemoryLeakTracker(instance: sut, sourceLocation: sourceLocation)
+        storeTracker = MemoryLeakTracker(instance: store, sourceLocation: sourceLocation)
         return (sut, store)
     }
     
