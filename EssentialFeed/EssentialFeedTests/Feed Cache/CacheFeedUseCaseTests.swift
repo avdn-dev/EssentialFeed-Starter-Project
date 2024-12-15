@@ -23,9 +23,14 @@ class LocalFeedLoader {
 
 class FeedStore {
     var deleteCachedFeedCallCount = 0
+    var insertCallCount = 0
     
     func deleteCachedFeed() {
         deleteCachedFeedCallCount = 1
+    }
+    
+    func completeDeletion(with error: Error, at index: Int = 0) {
+        
     }
 }
 
@@ -49,9 +54,22 @@ final class CacheFeedUseCaseTests {
     func saveRequestsCacheDeletion() {
         let (sut, store) = makeSut()
         let items = [makeUniqueItem(), makeUniqueItem()]
+        
         sut.save(items)
         
         #expect(store.deleteCachedFeedCallCount == 1)
+    }
+    
+    @Test("Save does not request cache insertion on deletion error")
+    func saveDoesNotRequestCacheInsertionOnDeletionError() {
+        let (sut, store) = makeSut()
+        let items = [makeUniqueItem(), makeUniqueItem()]
+        let deletionError = makeNsError()
+        
+        sut.save(items)
+        store.completeDeletion(with: deletionError)
+        
+        #expect(store.insertCallCount == 0)
     }
     
     // MARK: Helpers
@@ -66,4 +84,6 @@ final class CacheFeedUseCaseTests {
     private func makeUniqueItem() -> FeedItem { FeedItem(id: UUID(), description: nil, location: nil, imageUrl: makeUrl()) }
     
     private func makeUrl() -> URL { URL(string: "https://a-url.com")! }
+    
+    private func makeNsError() -> NSError { NSError(domain: "any error", code: 1) }
 }
