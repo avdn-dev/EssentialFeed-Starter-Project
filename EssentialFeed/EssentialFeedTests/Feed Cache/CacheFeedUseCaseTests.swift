@@ -52,11 +52,12 @@ final class CacheFeedUseCaseTests {
         let timestamp = Date()
         let (sut, store) = makeSut(currentDate: { timestamp })
         let items = [makeUniqueItem(), makeUniqueItem()]
+        let localItems = items.map { LocalFeedItem(id: $0.id, description: $0.description, location: $0.location, imageUrl: $0.imageUrl)}
         
         sut.save(items) { _ in }
         store.completeDeletionSuccessfully()
         
-        #expect(store.receivedMessages == [.deleteCachedFeed, .insert(items, timestamp)])
+        #expect(store.receivedMessages == [.deleteCachedFeed, .insert(localItems, timestamp)])
     }
     
     @Test("Save fails on deletion error")
@@ -152,7 +153,7 @@ final class CacheFeedUseCaseTests {
     private class FeedStoreSpy: FeedStore {
         enum ReceivedMessage: Equatable {
             case deleteCachedFeed
-            case insert([FeedItem], Date)
+            case insert([LocalFeedItem], Date)
         }
         
         private(set) var receivedMessages = [ReceivedMessage]()
@@ -173,7 +174,7 @@ final class CacheFeedUseCaseTests {
             deletionCompletions[index](nil)
         }
         
-        func insert(_ items: [FeedItem], at timestamp: Date, completion: @escaping InsertionCompletion) {
+        func insert(_ items: [LocalFeedItem], at timestamp: Date, completion: @escaping InsertionCompletion) {
             insertionCompletions.append(completion)
             receivedMessages.append(.insert(items, timestamp))
         }
