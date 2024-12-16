@@ -23,7 +23,11 @@ class LocalFeedLoader {
             guard let self else { return }
             
             if error == nil {
-                store.insert(items, at: currentDate(), completion: completion)
+                store.insert(items, at: currentDate()) { [weak self] error in
+                    guard self != nil else { return }
+                    
+                    completion(error)
+                }
             } else {
                 completion(error)
             }
@@ -133,8 +137,22 @@ final class CacheFeedUseCaseTests {
         
         #expect(receivedResults.isEmpty)
     }
-
     
+    @Test("Save does not deliver insertion error after SUT has been deallocated")
+    func saveDoesNotDeliverInsertionErrorAfterSutDeallocation() async {
+        let store = FeedStoreSpy()
+        var sut: LocalFeedLoader? = LocalFeedLoader(store: store, currentDate: Date.init)
+        
+        var receivedResults = [Error?]()
+        sut?.save([makeUniqueItem()]) { receivedResults.append($0) }
+        
+        store.completeDeletionSuccessfully()
+        sut = nil
+        store.completeInsertion(with: makeNsError())
+        
+        #expect(receivedResults.isEmpty)
+    }
+
     // MARK: Helpers
     private func makeSut(currentDate: @escaping () -> Date = Date.init, sourceLocation: SourceLocation = #_sourceLocation) -> (sut: LocalFeedLoader, store: FeedStoreSpy) {
         let store = FeedStoreSpy()
