@@ -29,9 +29,27 @@ final class LoadFeedFromCacheUseCaseTests {
     func loadRequestsCacheRetrieval() {
         let (sut, store) = makeSut()
         
-        sut.load()
+        sut.load { _ in }
         
         #expect(store.receivedMessages == [.retrieve])
+    }
+    
+    @Test("Load fails on retrieval error")
+    func loadFailsOnRetrievalError() async {
+        let (sut, store) = makeSut()
+        let retrievalError = makeNsError()
+        
+        var receivedError: Error?
+        await confirmation("Load completion") { completed in
+            sut.load { error in
+                receivedError = error
+                completed()
+            }
+             
+            store.completeRetrieval(with: retrievalError)
+        }
+        
+        #expect(receivedError as? NSError == retrievalError)
     }
     
     // MARK: Helpers
@@ -42,4 +60,7 @@ final class LoadFeedFromCacheUseCaseTests {
         storeTracker = MemoryLeakTracker(instance: store, sourceLocation: sourceLocation)
         return (sut, store)
     }
+    
+    private func makeNsError() -> NSError { NSError(domain: "any error", code: 1) }
 }
+
