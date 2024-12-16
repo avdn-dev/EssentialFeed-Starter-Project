@@ -25,6 +25,15 @@ final class LoadFeedFromCacheUseCaseTests {
         #expect(store.receivedMessages == [])
     }
     
+    @Test("Load requests cache retrieval")
+    func loadRequestsCacheRetrieval() {
+        let (sut, store) = makeSut()
+        
+        sut.load()
+        
+        #expect(store.receivedMessages == [.retrieve])
+    }
+    
     // MARK: Helpers
     private func makeSut(currentDate: @escaping () -> Date = Date.init, sourceLocation: SourceLocation = #_sourceLocation) -> (sut: LocalFeedLoader, store: FeedStoreSpy) {
         let store = FeedStoreSpy()
