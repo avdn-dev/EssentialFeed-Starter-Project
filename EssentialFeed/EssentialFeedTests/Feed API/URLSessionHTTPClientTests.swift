@@ -118,7 +118,7 @@ final class URLSessionHTTPClientTests {
     }
     
     private func resultErrorFor(data: Data?, response: URLResponse?, error: Error?, sourceLocation: SourceLocation = #_sourceLocation) async -> Error? {
-        let result = await resultFor(data: data, response: response, error: error)
+        let result = await resultFor(data: data, response: response, error: error, sourceLocation: sourceLocation)
         
         switch result {
         case let .failure(error):
