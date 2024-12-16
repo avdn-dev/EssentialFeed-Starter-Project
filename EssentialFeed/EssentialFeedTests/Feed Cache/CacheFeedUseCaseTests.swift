@@ -19,7 +19,9 @@ class LocalFeedLoader {
     }
     
     func save(_ items: [FeedItem], completion: @escaping (Error?) -> Void) {
-        store.deleteCachedFeed { [unowned self] error in
+        store.deleteCachedFeed { [weak self] error in
+            guard let self else { return }
+            
             if error == nil {
                 store.insert(items, at: currentDate(), completion: completion)
             } else {
@@ -117,6 +119,21 @@ final class CacheFeedUseCaseTests {
             store.completeInsertionSuccessfully()
         }
     }
+    
+    @Test("Save does not deliver deletion error after SUT has been deallocated")
+    func saveDoesNotDeliverDeletionErrorAfterSutDeallocation() async {
+        let store = FeedStoreSpy()
+        var sut: LocalFeedLoader? = LocalFeedLoader(store: store, currentDate: Date.init)
+        
+        var receivedResults = [Error?]()
+        sut?.save([makeUniqueItem()]) { receivedResults.append($0) }
+        
+        sut = nil
+        store.completeDeletion(with: makeNsError())
+        
+        #expect(receivedResults.isEmpty)
+    }
+
     
     // MARK: Helpers
     private func makeSut(currentDate: @escaping () -> Date = Date.init, sourceLocation: SourceLocation = #_sourceLocation) -> (sut: LocalFeedLoader, store: FeedStoreSpy) {
