@@ -89,6 +89,16 @@ final class LoadFeedFromCacheUseCaseTests {
         }
     }
     
+    @Test("Load deletes cache on retrieval error")
+    func loadDeletesCacheOnRetrievalError() async throws {
+        let (sut, store) = makeSut()
+        
+        sut.load { _ in }
+        store.completeRetrieval(with: makeNsError())
+        
+        #expect(store.receivedMessages == [.retrieve, .deleteCachedFeed])
+    }
+    
     // MARK: Helpers
     private func makeSut(currentDate: @escaping () -> Date = Date.init, sourceLocation: SourceLocation = #_sourceLocation) -> (sut: LocalFeedLoader, store: FeedStoreSpy) {
         let store = FeedStoreSpy()
