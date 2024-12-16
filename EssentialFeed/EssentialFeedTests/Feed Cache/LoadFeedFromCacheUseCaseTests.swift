@@ -122,6 +122,32 @@ final class LoadFeedFromCacheUseCaseTests {
         #expect(store.receivedMessages == [.retrieve])
     }
     
+    @Test("Load deletes cache when it is seven days old")
+    func loadDoesDeletesSevenDaysOldCache() async {
+        let feed = makeUniqueImageFeed()
+        let fixedCurrentDate = Date()
+        let sevenDaysOldTimestamp = fixedCurrentDate.adding(days: -7)
+        let (sut, store) = makeSut(currentDate: { fixedCurrentDate })
+        
+        sut.load { _ in }
+        store.completeRetrievalWith(with: feed.local, timestamp: sevenDaysOldTimestamp)
+        
+        #expect(store.receivedMessages == [.retrieve, .deleteCachedFeed])
+    }
+    
+    @Test("Load deletes cache when it is seven days old")
+    func loadDoesDeletesMoreThanSevenDaysOldCache() async {
+        let feed = makeUniqueImageFeed()
+        let fixedCurrentDate = Date()
+        let moreThanSevenDaysOldTimestamp = fixedCurrentDate.adding(days: -7).adding(seconds: -1)
+        let (sut, store) = makeSut(currentDate: { fixedCurrentDate })
+        
+        sut.load { _ in }
+        store.completeRetrievalWith(with: feed.local, timestamp: moreThanSevenDaysOldTimestamp)
+        
+        #expect(store.receivedMessages == [.retrieve, .deleteCachedFeed])
+    }
+    
     // MARK: Helpers
     private func makeSut(currentDate: @escaping () -> Date = Date.init, sourceLocation: SourceLocation = #_sourceLocation) -> (sut: LocalFeedLoader, store: FeedStoreSpy) {
         let store = FeedStoreSpy()
