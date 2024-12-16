@@ -130,7 +130,7 @@ final class LoadFeedFromRemoteUseCaseTests {
     private func makeItem(id: UUID, description: String? = nil, location: String? = nil, imageUrl: URL) -> (model: FeedImage, json: [String: Any]) {
         let item = FeedImage(id: id, description: description, location: location, url: imageUrl)
         let json = ["id": item.id.uuidString, "description": item.description, "location": item.location, "image": item.url.absoluteString].compactMapValues { $0 }
-    
+        
         return (item, json)
     }
     
@@ -140,19 +140,19 @@ final class LoadFeedFromRemoteUseCaseTests {
     }
     
     private func expect(_ sut: RemoteFeedLoader, toCompleteWithResult expectedResult: RemoteFeedLoader.Result, when action: @escaping () -> Void, sourceLocation: SourceLocation = #_sourceLocation) async {
-            await confirmation("Load completion") { loaded in
-                sut.load { receivedResult in
-                    switch (receivedResult, expectedResult) {
-                    case let (.success(receivedItems), .success(expectedItems)): #expect(receivedItems == expectedItems, sourceLocation: sourceLocation)
-                    case let (.failure(receivedError as RemoteFeedLoader.Error), .failure(expectedError as RemoteFeedLoader.Error)): #expect(receivedError == expectedError, sourceLocation: sourceLocation)
-                    default:
-                        Issue.record("Expected \(expectedResult), got \(receivedResult) instead", sourceLocation: sourceLocation)
-                    }
-                    
-                    loaded()
+        await confirmation("Load completion") { loaded in
+            sut.load { receivedResult in
+                switch (receivedResult, expectedResult) {
+                case let (.success(receivedItems), .success(expectedItems)): #expect(receivedItems == expectedItems, sourceLocation: sourceLocation)
+                case let (.failure(receivedError as RemoteFeedLoader.Error), .failure(expectedError as RemoteFeedLoader.Error)): #expect(receivedError == expectedError, sourceLocation: sourceLocation)
+                default:
+                    Issue.record("Expected \(expectedResult), got \(receivedResult) instead", sourceLocation: sourceLocation)
                 }
                 
-                action()
+                loaded()
+            }
+            
+            action()
         }
     }
     

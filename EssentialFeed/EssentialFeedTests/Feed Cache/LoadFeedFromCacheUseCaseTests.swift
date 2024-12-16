@@ -39,22 +39,18 @@ final class LoadFeedFromCacheUseCaseTests {
         let (sut, store) = makeSut()
         let retrievalError = makeNsError()
         
-        var receivedError: Error?
-        await confirmation("Load completion") { completed in
-            sut.load { result in
-                switch result {
-                case let .failure(error):
-                    receivedError = error
-                default:
-                    Issue.record("Expected failure, got \(result) instead")
-                }
-                completed()
-            }
-             
+        await expect(sut, toCompleteWith: .failure(retrievalError)) {
             store.completeRetrieval(with: retrievalError)
         }
+    }
+    
+    @Test("Load delivers no images when cache is empty")
+    func loadDeliversNoImagesOnEmptyCache() async throws {
+        let (sut, store) = makeSut()
         
-        #expect(receivedError as? NSError == retrievalError)
+        await expect(sut, toCompleteWith: .success([])) {
+            store.completeRetrievalWithEmptyCache()
+        }
     }
     
     // MARK: Helpers
@@ -67,5 +63,24 @@ final class LoadFeedFromCacheUseCaseTests {
     }
     
     private func makeNsError() -> NSError { NSError(domain: "any error", code: 1) }
+    
+    private func expect(_ sut: LocalFeedLoader, toCompleteWith expectedResult: LocalFeedLoader.LoadResult, when action: () -> Void, sourceLocation: SourceLocation = #_sourceLocation) async {
+        await confirmation("Load completion") { loaded in
+            sut.load { receivedResult in
+                switch (receivedResult, expectedResult ) {
+                case let (.success(receivedImages), .success(expectedImages)):
+                    #expect(receivedImages == expectedImages, sourceLocation: sourceLocation)
+                case let (.failure(receivedError as NSError), .failure(expectedError as NSError)):
+                    #expect(receivedError == expectedError, sourceLocation: sourceLocation)
+                default:
+                    Issue.record("Expected result \(expectedResult), got \(receivedResult) instead", sourceLocation: sourceLocation)
+                }
+                
+                loaded()
+            }
+             
+            action()
+        }
+    }
 }
 
