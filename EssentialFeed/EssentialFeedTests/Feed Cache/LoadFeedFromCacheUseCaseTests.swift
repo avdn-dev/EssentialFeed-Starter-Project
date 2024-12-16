@@ -54,7 +54,7 @@ final class LoadFeedFromCacheUseCaseTests {
     }
     
     @Test("Load delivers cached images when cache is less than seven days old")
-    func loadDeliversCachedImagesOnLessThanSevenDaysOldCache() async throws {
+    func loadDeliversCachedImagesOnLessThanSevenDaysOldCache() async {
         let feed = makeUniqueImageFeed()
         let fixedCurrentDate = Date()
         let lessThanSevenDaysOldTimestamp = fixedCurrentDate.adding(days: -7).adding(seconds: 1)
@@ -66,7 +66,7 @@ final class LoadFeedFromCacheUseCaseTests {
     }
     
     @Test("Load delivers no images when cache is seven days old")
-    func loadDeliversNoImagesOnSevenDaysOldCache() async throws {
+    func loadDeliversNoImagesOnSevenDaysOldCache() async {
         let feed = makeUniqueImageFeed()
         let fixedCurrentDate = Date()
         let sevenDaysOldTimestamp = fixedCurrentDate.adding(days: -7)
@@ -78,7 +78,7 @@ final class LoadFeedFromCacheUseCaseTests {
     }
     
     @Test("Load delivers no images when cache is more than seven days old")
-    func loadDeliversNoImagesOnMoreThanSevenDaysOldCache() async throws {
+    func loadDeliversNoImagesOnMoreThanSevenDaysOldCache() async {
         let feed = makeUniqueImageFeed()
         let fixedCurrentDate = Date()
         let sevenDaysOldTimestamp = fixedCurrentDate.adding(days: -7).adding(seconds: -1)
@@ -90,7 +90,7 @@ final class LoadFeedFromCacheUseCaseTests {
     }
     
     @Test("Load deletes cache on retrieval error")
-    func loadDeletesCacheOnRetrievalError() async throws {
+    func loadDeletesCacheOnRetrievalError() async {
         let (sut, store) = makeSut()
         
         sut.load { _ in }
@@ -100,7 +100,7 @@ final class LoadFeedFromCacheUseCaseTests {
     }
     
     @Test("Load does not delete cache on retrieval error when cache is already empty")
-    func loadDoesNotDeleteEmptyCacheOnRetrievalError() async throws {
+    func loadDoesNotDeleteEmptyCacheOnRetrievalError() async {
         let (sut, store) = makeSut()
         
         sut.load { _ in }
@@ -110,7 +110,7 @@ final class LoadFeedFromCacheUseCaseTests {
     }
     
     @Test("Load does not delete cache when it is less than seven days old")
-    func loadDoesNotDeleteLessThanSevenDaysOldCache() async throws {
+    func loadDoesNotDeleteLessThanSevenDaysOldCache() async {
         let feed = makeUniqueImageFeed()
         let fixedCurrentDate = Date()
         let lessThanSevenDaysOldTimestamp = fixedCurrentDate.adding(days: -7).adding(seconds: 1)
