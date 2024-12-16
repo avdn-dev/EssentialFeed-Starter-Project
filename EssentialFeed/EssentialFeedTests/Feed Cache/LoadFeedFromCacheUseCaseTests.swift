@@ -41,8 +41,13 @@ final class LoadFeedFromCacheUseCaseTests {
         
         var receivedError: Error?
         await confirmation("Load completion") { completed in
-            sut.load { error in
-                receivedError = error
+            sut.load { result in
+                switch result {
+                case let .failure(error):
+                    receivedError = error
+                default:
+                    Issue.record("Expected failure, got \(result) instead")
+                }
                 completed()
             }
              
