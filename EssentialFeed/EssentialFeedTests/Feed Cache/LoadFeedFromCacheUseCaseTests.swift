@@ -66,10 +66,22 @@ final class LoadFeedFromCacheUseCaseTests {
     }
     
     @Test("Load delivers no images when cache is seven days old")
-    func loadDeliversNoImagesOnMorehanSevenDaysOldCache() async throws {
+    func loadDeliversNoImagesOnSevenDaysOldCache() async throws {
         let feed = makeUniqueImageFeed()
         let fixedCurrentDate = Date()
         let sevenDaysOldTimestamp = fixedCurrentDate.adding(days: -7)
+        let (sut, store) = makeSut(currentDate: { fixedCurrentDate })
+        
+        await expect(sut, toCompleteWith: .success([])) {
+            store.completeRetrievalWith(with: feed.local, timestamp: sevenDaysOldTimestamp)
+        }
+    }
+    
+    @Test("Load delivers no images when cache is more than seven days old")
+    func loadDeliversNoImagesOnMoreThanSevenDaysOldCache() async throws {
+        let feed = makeUniqueImageFeed()
+        let fixedCurrentDate = Date()
+        let sevenDaysOldTimestamp = fixedCurrentDate.adding(days: -7).adding(seconds: -1)
         let (sut, store) = makeSut(currentDate: { fixedCurrentDate })
         
         await expect(sut, toCompleteWith: .success([])) {
