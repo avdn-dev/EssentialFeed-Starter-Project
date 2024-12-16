@@ -8,8 +8,8 @@
 import Testing
 
 internal struct MemoryLeakTracker<T: AnyObject> {
-    private weak var instance: T?
-    private var sourceLocation: SourceLocation
+    internal weak var instance: T?
+    internal var sourceLocation: SourceLocation
     
     internal func verifyDeallocation() {
         #expect(instance == nil, "Expected \(instance) to be deallocated", sourceLocation: sourceLocation)

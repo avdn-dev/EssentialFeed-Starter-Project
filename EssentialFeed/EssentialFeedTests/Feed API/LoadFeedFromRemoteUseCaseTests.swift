@@ -127,9 +127,9 @@ final class LoadFeedFromRemoteUseCaseTests {
         return (sut, client)
     }
     
-    private func makeItem(id: UUID, description: String? = nil, location: String? = nil, imageUrl: URL) -> (model: FeedItem, json: [String: Any]) {
-        let item = FeedItem(id: id, description: description, location: location, imageUrl: imageUrl)
-        let json = ["id": item.id.uuidString, "description": item.description, "location": item.location, "image": item.imageUrl.absoluteString].compactMapValues { $0 }
+    private func makeItem(id: UUID, description: String? = nil, location: String? = nil, imageUrl: URL) -> (model: FeedImage, json: [String: Any]) {
+        let item = FeedImage(id: id, description: description, location: location, url: imageUrl)
+        let json = ["id": item.id.uuidString, "description": item.description, "location": item.location, "image": item.url.absoluteString].compactMapValues { $0 }
     
         return (item, json)
     }
