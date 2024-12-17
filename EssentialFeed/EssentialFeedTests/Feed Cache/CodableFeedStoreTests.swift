@@ -126,10 +126,40 @@ final class CodableFeedStoreTests {
                         #expect(retrievedFeed == feed)
                         #expect(retrievedTimestamp == timestamp)
                     default:
-                        Issue.record("Expected found result with feed \(feed) and timestamp \(timestamp), got \(retrieveResult)")
+                        Issue.record("Expected found result with feed \(feed) and timestamp \(timestamp), got \(retrieveResult) instead")
                     }
                     
                     completed()
+                }
+            }
+        }
+    }
+    
+    @Test("Retrieve after insert into empty cache returns initially inserted values with no side effect")
+    func retrieveAfterInsertDeliversInsertedValuesTwice() async {
+        let feed = makeUniqueImageFeed().local
+        let timestamp = Date()
+        let sut = makeSut()
+        
+        await confirmation("Retrieve completion") { completed in
+            sut.insert(feed, at: timestamp) { insertionError in
+                #expect(insertionError == nil)
+                
+                sut.retrieve { firstResult in
+                    sut.retrieve { secondResult in
+                        switch (firstResult, secondResult) {
+                        case let (.found(firstFeed, firstTimestamp), .found(secondFeed, secondTimestamp)):
+                            #expect(firstFeed == feed)
+                            #expect(firstTimestamp == timestamp)
+                            
+                            #expect(secondFeed == feed)
+                            #expect(secondTimestamp == timestamp)
+                        default:
+                            Issue.record("Expected found result twice with feed \(feed) and timestamp \(timestamp), got \(firstResult) and \(secondResult) instead")
+                        }
+                        
+                        completed()
+                    }
                 }
             }
         }
