@@ -122,8 +122,8 @@ final class LoadFeedFromCacheUseCaseTests {
         #expect(store.receivedMessages == [.retrieve])
     }
     
-    @Test("Load deletes cache when it is seven days old")
-    func loadDoesDeletesSevenDaysOldCache() async {
+    @Test("Load has no side effect on cache when it is seven days old")
+    func loadHasNoSideEffectOnSevenDaysOldCache() async {
         let feed = makeUniqueImageFeed()
         let fixedCurrentDate = Date()
         let sevenDaysOldTimestamp = fixedCurrentDate.adding(days: -7)
@@ -132,11 +132,11 @@ final class LoadFeedFromCacheUseCaseTests {
         sut.load { _ in }
         store.completeRetrievalWith(with: feed.local, timestamp: sevenDaysOldTimestamp)
         
-        #expect(store.receivedMessages == [.retrieve, .deleteCachedFeed])
+        #expect(store.receivedMessages == [.retrieve])
     }
     
-    @Test("Load deletes cache when it is seven days old")
-    func loadDoesDeletesMoreThanSevenDaysOldCache() async {
+    @Test("Load has no side effect on cache when it is more than seven days old")
+    func loadHasNoSideEffectOnMoreThanSevenDaysOldCache() async {
         let feed = makeUniqueImageFeed()
         let fixedCurrentDate = Date()
         let moreThanSevenDaysOldTimestamp = fixedCurrentDate.adding(days: -7).adding(seconds: -1)
@@ -145,7 +145,7 @@ final class LoadFeedFromCacheUseCaseTests {
         sut.load { _ in }
         store.completeRetrievalWith(with: feed.local, timestamp: moreThanSevenDaysOldTimestamp)
         
-        #expect(store.receivedMessages == [.retrieve, .deleteCachedFeed])
+        #expect(store.receivedMessages == [.retrieve])
     }
     
     @Test("Load does not deliver result after SUT has been deallocated")
