@@ -10,7 +10,7 @@ import Foundation
 import Testing
 
 class CodableFeedStore {
-    private let storeUrl = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!.appending(path: "image-feed.store")
+    private let storeUrl: URL
     
     private struct Cache: Codable {
         let feed: [CodableFeedImage]
@@ -33,6 +33,10 @@ class CodableFeedStore {
         }
         
         var local: LocalFeedImage { LocalFeedImage(id: id, description: description, location: location, url: url)}
+    }
+    
+    init(storeUrl: URL) {
+        self.storeUrl = storeUrl
     }
     
     func retrieve(completion: @escaping FeedStore.RetrievalCompletion) {
@@ -135,7 +139,8 @@ final class CodableFeedStoreTests {
     
     // MARK: Helpers
     private func makeSut(sourceLocation: SourceLocation = #_sourceLocation) -> CodableFeedStore {
-        let sut = CodableFeedStore()
+        let storeUrl = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!.appending(path: "image-feed.store")
+        let sut = CodableFeedStore(storeUrl: storeUrl)
         sutTracker = MemoryLeakTracker(instance: sut, sourceLocation: sourceLocation)
         return sut
     }
