@@ -64,11 +64,11 @@ final class CodableFeedStoreTests {
     private var sutTracker: MemoryLeakTracker<CodableFeedStore>?
     
     init() {
-        try? FileManager.default.removeItem(at: makeTestStoreUrl())
+        setupEmptyStoreState()
     }
     
     deinit {
-        try? FileManager.default.removeItem(at: makeTestStoreUrl())
+        undoStoreSideEffects()
         sutTracker?.verifyDeallocation()
     }
     
@@ -144,4 +144,16 @@ final class CodableFeedStoreTests {
     }
     
     private func makeTestStoreUrl() -> URL { FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!.appending(path: "\(type(of: self)).store") }
+    
+    private func setupEmptyStoreState() {
+        deleteStoreArtifacts()
+    }
+    
+    private func undoStoreSideEffects() {
+        deleteStoreArtifacts()
+    }
+    
+    private func deleteStoreArtifacts() {
+        try? FileManager.default.removeItem(at: makeTestStoreUrl())
+    }
 }
