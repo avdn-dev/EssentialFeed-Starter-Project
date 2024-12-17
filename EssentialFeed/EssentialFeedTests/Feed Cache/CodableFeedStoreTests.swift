@@ -32,4 +32,24 @@ final class CodableFeedStoreTests {
             }
         }
     }
+    
+    @Test("Retrieve delivers nothing on empty cache twice with no side effect")
+    func retrieveDeliversNothingOnEmptyCacheTwice() async {
+        let sut = CodableFeedStore()
+        
+        await confirmation("Retrieve completion") { completed in
+            sut.retrieve { firstResult in
+                sut.retrieve { secondResult in
+                    switch (firstResult, secondResult) {
+                    case (.empty, .empty):
+                        break
+                    default:
+                        Issue.record("Expected empty result twice, got \(firstResult) and \(secondResult) instead")
+                    }
+                    
+                    completed()
+                }
+            }
+        }
+    }
 }
