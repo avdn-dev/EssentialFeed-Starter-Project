@@ -65,6 +65,19 @@ class CodableFeedStore {
             completion(error)
         }
     }
+    
+    public func deleteCachedFeed(completion: @escaping FeedStore.DeletionCompletion) {
+        guard FileManager.default.fileExists(atPath: storeUrl.path) else {
+            return completion(nil)
+        }
+
+        do {
+            try FileManager.default.removeItem(at: storeUrl)
+            completion(nil)
+        } catch {
+            completion(error)
+        }
+    }
 }
 
 @Suite(.serialized)
@@ -161,6 +174,38 @@ final class CodableFeedStoreTests {
         #expect(insertionError != nil)
     }
     
+    @Test("Delete has no side effects on empty cache")
+    func deleteHasNoSideEffectsOnEmptyCache() async {
+        let sut = makeSut()
+        
+        let deletionError = await deleteCache(from: sut)
+        
+        #expect(deletionError == nil)
+        await expect(sut, toRetrieve: .empty)
+    }
+    
+    @Test("Delete empties previously inserted cache")
+    func deleteEmptiesPreviouslyInsertedCache() async {
+        let sut = makeSut()
+        
+        await insert((makeUniqueImageFeed().local, Date()), to: sut)
+        let deletionError = await deleteCache(from: sut)
+        
+        #expect(deletionError == nil)
+        await expect(sut, toRetrieve: .empty)
+    }
+    
+    @Test("Delete delivers error on deletion error")
+    func deleteDeliversErrorOnDeletionError() async {
+        let noDeletePermissionsUrl = makeCachesDirectoryUrl()
+        let sut = makeSut(storeUrl: noDeletePermissionsUrl)
+        
+        let deletionError = await deleteCache(from: sut)
+        
+        #expect(deletionError != nil)
+        await expect(sut, toRetrieve: .empty)
+    }
+    
     // MARK: Helpers
     private func makeSut(storeUrl: URL? = nil, sourceLocation: SourceLocation = #_sourceLocation) -> CodableFeedStore {
         let sut = CodableFeedStore(storeUrl: storeUrl ?? makeTestStoreUrl())
@@ -168,7 +213,9 @@ final class CodableFeedStoreTests {
         return sut
     }
     
-    private func makeTestStoreUrl() -> URL { FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!.appending(path: "\(type(of: self)).store") }
+    private func makeTestStoreUrl() -> URL { makeCachesDirectoryUrl().appending(path: "\(type(of: self)).store") }
+    
+    private func makeCachesDirectoryUrl() -> URL { FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first! }
     
     private func setupEmptyStoreState() {
         deleteStoreArtifacts()
@@ -217,5 +264,18 @@ final class CodableFeedStoreTests {
         }
         
         return insertionError
+    }
+    
+    private func deleteCache(from sut: CodableFeedStore) async -> Error? {
+        var deletionError: Error?
+        
+        await confirmation("Delete completion") { completed in
+            sut.deleteCachedFeed { receivedDeletionError in
+                deletionError = receivedDeletionError
+                completed()
+            }
+        }
+        
+        return deletionError
     }
 }
