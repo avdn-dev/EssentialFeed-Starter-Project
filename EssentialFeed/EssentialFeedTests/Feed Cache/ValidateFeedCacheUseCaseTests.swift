@@ -45,41 +45,41 @@ final class ValidateFeedCacheUseCaseTests {
         #expect(store.receivedMessages == [.retrieve])
     }
     
-    @Test("Validation has no side effect on cache when it is less than seven days old")
-    func validateHasNoSideEffectOnLessThanSevenDaysOldCache() async {
+    @Test("Validation has no side effect on cache when it is nonexpired")
+    func validateHasNoSideEffectOnNonexpiredCache() async {
         let feed = makeUniqueImageFeed()
         let fixedCurrentDate = Date()
-        let lessThanSevenDaysOldTimestamp = fixedCurrentDate.adding(days: -7).adding(seconds: 1)
+        let nonexpiredTimestamp = fixedCurrentDate.minusCacheFeedMaxAge().adding(seconds: 1)
         let (sut, store) = makeSut(currentDate: { fixedCurrentDate })
         
         sut.validateCache()
-        store.completeRetrievalWith(with: feed.local, timestamp: lessThanSevenDaysOldTimestamp)
+        store.completeRetrievalWith(with: feed.local, timestamp: nonexpiredTimestamp)
         
         #expect(store.receivedMessages == [.retrieve])
     }
     
-    @Test("Validation deletes cache when it is seven days old")
-    func validateDeletesSevenDaysOldCache() async {
+    @Test("Validation deletes cache on expiration")
+    func validateDeletesCacheOnCacheExpiration() async {
         let feed = makeUniqueImageFeed()
         let fixedCurrentDate = Date()
-        let sevenDaysOldTimestamp = fixedCurrentDate.adding(days: -7)
+        let expirationTimestamp = fixedCurrentDate.minusCacheFeedMaxAge()
         let (sut, store) = makeSut(currentDate: { fixedCurrentDate })
         
         sut.validateCache()
-        store.completeRetrievalWith(with: feed.local, timestamp: sevenDaysOldTimestamp)
+        store.completeRetrievalWith(with: feed.local, timestamp: expirationTimestamp)
         
         #expect(store.receivedMessages == [.retrieve, .deleteCachedFeed])
     }
     
-    @Test("Validation deletes cache when it is more than seven days old")
-    func validateDeletesMoreThanSevenDaysOldCache() async {
+    @Test("Validation deletes cache when it is expired")
+    func validateDeletesExpiredCache() async {
         let feed = makeUniqueImageFeed()
         let fixedCurrentDate = Date()
-        let moreThanSevenDaysOldTimestamp = fixedCurrentDate.adding(days: -7).adding(seconds: -1)
+        let expiredTimestamp = fixedCurrentDate.minusCacheFeedMaxAge().adding(seconds: -1)
         let (sut, store) = makeSut(currentDate: { fixedCurrentDate })
         
         sut.validateCache()
-        store.completeRetrievalWith(with: feed.local, timestamp: moreThanSevenDaysOldTimestamp)
+        store.completeRetrievalWith(with: feed.local, timestamp: expiredTimestamp)
         
         #expect(store.receivedMessages == [.retrieve, .deleteCachedFeed])
     }
