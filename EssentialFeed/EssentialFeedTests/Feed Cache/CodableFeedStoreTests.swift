@@ -122,6 +122,16 @@ final class CodableFeedStoreTests {
         await expect(sut, toRetrieve: .failure(makeNsError()))
     }
     
+    @Test("Retrieve delivers failure on retrieval error with no side effect")
+    func retrieveDeliversFailureOnRetrievalErrorTwice() async {
+        let storeUrl = makeTestStoreUrl()
+        let sut = makeSut(storeUrl: storeUrl)
+        
+        try! "invalid data".write(to: storeUrl, atomically: false, encoding: .utf8)
+        
+        await expect(sut, toRetrieveTwice: .failure(makeNsError()))
+    }
+    
     // MARK: Helpers
     private func makeSut(storeUrl: URL? = nil, sourceLocation: SourceLocation = #_sourceLocation) -> CodableFeedStore {
         let sut = CodableFeedStore(storeUrl: storeUrl ?? makeTestStoreUrl())
