@@ -69,7 +69,7 @@ final class CodableFeedStoreTests {
     
     @Test("Retrieve delivers nothing on empty cache")
     func retrieveDeliversNothingOnEmptyCache() async {
-        let sut = CodableFeedStore()
+        let sut = makeSut()
         
         await confirmation("Retrieve completion") { completed in
             sut.retrieve { result in
@@ -87,7 +87,7 @@ final class CodableFeedStoreTests {
     
     @Test("Retrieve delivers nothing on empty cache twice with no side effect")
     func retrieveDeliversNothingOnEmptyCacheTwice() async {
-        let sut = CodableFeedStore()
+        let sut = makeSut()
         
         await confirmation("Retrieve completion") { completed in
             sut.retrieve { firstResult in
@@ -109,7 +109,7 @@ final class CodableFeedStoreTests {
     func retrieveAfterInsertDeliversInsertedValues() async {
         let feed = makeUniqueImageFeed().local
         let timestamp = Date()
-        let sut = CodableFeedStore()
+        let sut = makeSut()
         
         await confirmation("Retrieve completion") { completed in
             sut.insert(feed, at: timestamp) { insertionError in
@@ -128,5 +128,10 @@ final class CodableFeedStoreTests {
                 }
             }
         }
+    }
+    
+    // MARK: Helpers
+    private func makeSut() -> CodableFeedStore {
+        return CodableFeedStore()
     }
 }
