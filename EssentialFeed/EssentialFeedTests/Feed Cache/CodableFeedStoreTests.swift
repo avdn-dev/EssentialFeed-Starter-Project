@@ -60,6 +60,7 @@ class CodableFeedStore {
     }
 }
 
+@Suite(.serialized)
 final class CodableFeedStoreTests {
     private var sutTracker: MemoryLeakTracker<CodableFeedStore>?
     
@@ -76,38 +77,14 @@ final class CodableFeedStoreTests {
     func retrieveDeliversNothingOnEmptyCache() async {
         let sut = makeSut()
         
-        await confirmation("Retrieve completion") { completed in
-            sut.retrieve { result in
-                switch result {
-                case .empty:
-                    break
-                default:
-                    Issue.record("Expected empty result, got \(result) instead")
-                }
-                
-                completed()
-            }
-        }
+        await expect(sut, toRetrieve: .empty)
     }
     
     @Test("Retrieve delivers nothing on empty cache twice with no side effect")
     func retrieveDeliversNothingOnEmptyCacheTwice() async {
         let sut = makeSut()
         
-        await confirmation("Retrieve completion") { completed in
-            sut.retrieve { firstResult in
-                sut.retrieve { secondResult in
-                    switch (firstResult, secondResult) {
-                    case (.empty, .empty):
-                        break
-                    default:
-                        Issue.record("Expected empty result twice, got \(firstResult) and \(secondResult) instead")
-                    }
-                    
-                    completed()
-                }
-            }
-        }
+        await expect(sut, toRetrieveTwice: .empty)
     }
     
     @Test("Retrieve after insert into empty cache returns initially inserted values")
@@ -116,23 +93,9 @@ final class CodableFeedStoreTests {
         let timestamp = Date()
         let sut = makeSut()
         
-        await confirmation("Retrieve completion") { completed in
-            sut.insert(feed, at: timestamp) { insertionError in
-                #expect(insertionError == nil)
-                
-                sut.retrieve { retrieveResult in
-                    switch (retrieveResult) {
-                    case let .found(retrievedFeed, retrievedTimestamp):
-                        #expect(retrievedFeed == feed)
-                        #expect(retrievedTimestamp == timestamp)
-                    default:
-                        Issue.record("Expected found result with feed \(feed) and timestamp \(timestamp), got \(retrieveResult) instead")
-                    }
-                    
-                    completed()
-                }
-            }
-        }
+        await insert((feed, timestamp), to: sut)
+        
+        await expect(sut, toRetrieve: .found(feed: feed, timestamp: timestamp))
     }
     
     @Test("Retrieve after insert into empty cache returns initially inserted values with no side effect")
@@ -141,28 +104,9 @@ final class CodableFeedStoreTests {
         let timestamp = Date()
         let sut = makeSut()
         
-        await confirmation("Retrieve completion") { completed in
-            sut.insert(feed, at: timestamp) { insertionError in
-                #expect(insertionError == nil)
-                
-                sut.retrieve { firstResult in
-                    sut.retrieve { secondResult in
-                        switch (firstResult, secondResult) {
-                        case let (.found(firstFeed, firstTimestamp), .found(secondFeed, secondTimestamp)):
-                            #expect(firstFeed == feed)
-                            #expect(firstTimestamp == timestamp)
-                            
-                            #expect(secondFeed == feed)
-                            #expect(secondTimestamp == timestamp)
-                        default:
-                            Issue.record("Expected found result twice with feed \(feed) and timestamp \(timestamp), got \(firstResult) and \(secondResult) instead")
-                        }
-                        
-                        completed()
-                    }
-                }
-            }
-        }
+        await insert((feed, timestamp), to: sut)
+        
+        await expect(sut, toRetrieveTwice: .found(feed: feed, timestamp: timestamp))
     }
     
     // MARK: Helpers
@@ -185,5 +129,37 @@ final class CodableFeedStoreTests {
     
     private func deleteStoreArtifacts() {
         try? FileManager.default.removeItem(at: makeTestStoreUrl())
+    }
+    
+    private func expect(_ sut: CodableFeedStore, toRetrieve expectedResult: RetrieveCachedFeedResult, sourceLocation: SourceLocation = #_sourceLocation) async {
+        await confirmation("Retrieve completion") { completed in
+            sut.retrieve { retrievedResult in
+                switch (expectedResult, retrievedResult) {
+                case (.empty, .empty):
+                    break
+                case let (.found(expectedFeed, expectedTimestamp), .found(retrievedFeed, retrievedTimestamp)):
+                    #expect(retrievedFeed == expectedFeed, sourceLocation: sourceLocation)
+                    #expect(retrievedTimestamp == expectedTimestamp, sourceLocation: sourceLocation)
+                default:
+                    Issue.record("Expected to retrieve \(expectedResult), got \(retrievedResult) instead", sourceLocation: sourceLocation)
+                }
+                
+                completed()
+            }
+        }
+    }
+    
+    private func expect(_ sut: CodableFeedStore, toRetrieveTwice expectedResult: RetrieveCachedFeedResult, sourceLocation: SourceLocation = #_sourceLocation) async {
+        await expect(sut, toRetrieve: expectedResult)
+        await expect(sut, toRetrieve: expectedResult)
+    }
+    
+    private func insert(_ cache: (feed: [LocalFeedImage], timestamp: Date), to sut: CodableFeedStore) async {
+        await confirmation("Insert completion") { completed in
+            sut.insert(cache.feed, at: cache.timestamp) { insertionError in
+                #expect(insertionError == nil)
+                completed()
+            }
+        }
     }
 }
