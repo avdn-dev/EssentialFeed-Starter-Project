@@ -90,7 +90,7 @@ final class LoadFeedFromCacheUseCaseTests {
     }
     
     @Test("Load has no side effects on retrieval error")
-    func loadDoesNotDeleteCacheOnRetrievalError() async {
+    func loadHasNoSideEffectOnCacheOnRetrievalError() async {
         let (sut, store) = makeSut()
         
         sut.load { _ in }
@@ -100,7 +100,7 @@ final class LoadFeedFromCacheUseCaseTests {
     }
     
     @Test("Load has no side effects on empty cache")
-    func loadDoesNotDeleteEmptyCacheOnRetrievalError() async {
+    func loadHasNoSideEffectOnEmptyCacheOnRetrievalError() async {
         let (sut, store) = makeSut()
         
         sut.load { _ in }
@@ -109,8 +109,8 @@ final class LoadFeedFromCacheUseCaseTests {
         #expect(store.receivedMessages == [.retrieve])
     }
     
-    @Test("Load does not delete cache when it is less than seven days old")
-    func loadDoesNotDeleteLessThanSevenDaysOldCache() async {
+    @Test("Load has no side effect on cache when it is less than seven days old")
+    func loadHasNoSideEffectOnLessThanSevenDaysOldCache() async {
         let feed = makeUniqueImageFeed()
         let fixedCurrentDate = Date()
         let lessThanSevenDaysOldTimestamp = fixedCurrentDate.adding(days: -7).adding(seconds: 1)
