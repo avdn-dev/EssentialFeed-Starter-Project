@@ -207,7 +207,7 @@ final class CodableFeedStoreTests {
     }
     
     // MARK: Helpers
-    private func makeSut(storeUrl: URL? = nil, sourceLocation: SourceLocation = #_sourceLocation) -> CodableFeedStore {
+    private func makeSut(storeUrl: URL? = nil, sourceLocation: SourceLocation = #_sourceLocation) -> FeedStore {
         let sut = CodableFeedStore(storeUrl: storeUrl ?? makeTestStoreUrl())
         sutTracker = MemoryLeakTracker(instance: sut, sourceLocation: sourceLocation)
         return sut
@@ -229,7 +229,7 @@ final class CodableFeedStoreTests {
         try? FileManager.default.removeItem(at: makeTestStoreUrl())
     }
     
-    private func expect(_ sut: CodableFeedStore, toRetrieve expectedResult: RetrieveCachedFeedResult, sourceLocation: SourceLocation = #_sourceLocation) async {
+    private func expect(_ sut: FeedStore, toRetrieve expectedResult: RetrieveCachedFeedResult, sourceLocation: SourceLocation = #_sourceLocation) async {
         await confirmation("Retrieve completion") { completed in
             sut.retrieve { retrievedResult in
                 switch (expectedResult, retrievedResult) {
@@ -247,13 +247,13 @@ final class CodableFeedStoreTests {
         }
     }
     
-    private func expect(_ sut: CodableFeedStore, toRetrieveTwice expectedResult: RetrieveCachedFeedResult, sourceLocation: SourceLocation = #_sourceLocation) async {
+    private func expect(_ sut: FeedStore, toRetrieveTwice expectedResult: RetrieveCachedFeedResult, sourceLocation: SourceLocation = #_sourceLocation) async {
         await expect(sut, toRetrieve: expectedResult)
         await expect(sut, toRetrieve: expectedResult)
     }
     
     @discardableResult
-    private func insert(_ cache: (feed: [LocalFeedImage], timestamp: Date), to sut: CodableFeedStore) async -> Error? {
+    private func insert(_ cache: (feed: [LocalFeedImage], timestamp: Date), to sut: FeedStore) async -> Error? {
         var insertionError: Error?
         
         await confirmation("Insert completion") { completed in
@@ -266,7 +266,7 @@ final class CodableFeedStoreTests {
         return insertionError
     }
     
-    private func deleteCache(from sut: CodableFeedStore) async -> Error? {
+    private func deleteCache(from sut: FeedStore) async -> Error? {
         var deletionError: Error?
         
         await confirmation("Delete completion") { completed in
