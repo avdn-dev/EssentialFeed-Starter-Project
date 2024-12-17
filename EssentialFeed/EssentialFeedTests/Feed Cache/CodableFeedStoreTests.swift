@@ -132,6 +132,21 @@ final class CodableFeedStoreTests {
         await expect(sut, toRetrieveTwice: .failure(makeNsError()))
     }
     
+    @Test("Insert overwrites previously inserted cache values")
+    func insertOverwritesPreviousCacheValues() async {
+        let sut = makeSut()
+        
+        let firstInsertionError = await insert((makeUniqueImageFeed().local, Date()), to: sut)
+        #expect(firstInsertionError == nil)
+        
+        let latestFeed = makeUniqueImageFeed().local
+        let latestTimestamp = Date()
+        let latestInsertionError = await insert((latestFeed, latestTimestamp), to: sut)
+        
+        #expect(latestInsertionError == nil)
+        await expect(sut, toRetrieve: .found(feed: latestFeed, timestamp: latestTimestamp))
+    }
+    
     // MARK: Helpers
     private func makeSut(storeUrl: URL? = nil, sourceLocation: SourceLocation = #_sourceLocation) -> CodableFeedStore {
         let sut = CodableFeedStore(storeUrl: storeUrl ?? makeTestStoreUrl())
@@ -176,12 +191,17 @@ final class CodableFeedStoreTests {
         await expect(sut, toRetrieve: expectedResult)
     }
     
-    private func insert(_ cache: (feed: [LocalFeedImage], timestamp: Date), to sut: CodableFeedStore) async {
+    @discardableResult
+    private func insert(_ cache: (feed: [LocalFeedImage], timestamp: Date), to sut: CodableFeedStore) async -> Error? {
+        var insertionError: Error?
+        
         await confirmation("Insert completion") { completed in
-            sut.insert(cache.feed, at: cache.timestamp) { insertionError in
-                #expect(insertionError == nil)
+            sut.insert(cache.feed, at: cache.timestamp) { receivedInsertionError in
+                insertionError = receivedInsertionError
                 completed()
             }
         }
+        
+        return insertionError
     }
 }
