@@ -13,9 +13,6 @@ public final class LocalFeedLoader: FeedLoader {
     private let calendar = Calendar(identifier: .gregorian)
     private let maxCacheAgeInDays = 7
     
-    public typealias SaveResult = Error?
-    public typealias LoadResult = LoadFeedResult
-    
     public init(store: FeedStore, currentDate: @escaping () -> Date) {
         self.store = store
         self.currentDate = currentDate
@@ -31,6 +28,8 @@ public final class LocalFeedLoader: FeedLoader {
 }
 
 public extension LocalFeedLoader {
+    typealias SaveResult = Error?
+    
     func save(_ feed: [FeedImage], completion: @escaping (SaveResult) -> Void) {
         store.deleteCachedFeed { [weak self] cacheDeletionError in
             guard let self else { return }
@@ -53,6 +52,8 @@ public extension LocalFeedLoader {
 }
 
 public extension LocalFeedLoader {
+    typealias LoadResult = LoadFeedResult
+    
     func load(completion: @escaping (LoadResult) -> Void) {
         store.retrieve { [weak self] result in
             guard let self else { return }
