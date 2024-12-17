@@ -95,11 +95,7 @@ final class URLSessionHTTPClientTests {
         return sut
     }
     
-    private func makeUrl() -> URL { URL(string: "https://a-url.com")! }
-    
     private func makeData() -> Data? { "any data".data(using: .utf8) }
-    
-    private func makeNsError() -> NSError { NSError(domain: "any error", code: 1) }
     
     private func makeHttpUrlResponse() -> HTTPURLResponse { HTTPURLResponse(url: makeUrl(), statusCode: 200, httpVersion: nil, headerFields: nil)! }
     
