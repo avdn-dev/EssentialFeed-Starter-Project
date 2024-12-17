@@ -84,6 +84,18 @@ final class ValidateFeedCacheUseCaseTests {
         #expect(store.receivedMessages == [.retrieve, .deleteCachedFeed])
     }
     
+    @Test("Validation does not delete invalid cache after SUT has been deallocated")
+    func validationDoesNotDeleteInvalidCacheAfterSutDeallocation() async {
+        let store = FeedStoreSpy()
+        var sut: LocalFeedLoader? = LocalFeedLoader(store: store, currentDate: Date.init)
+        
+        sut?.validateCache()
+        
+        sut = nil
+        store.completeRetrieval(with: makeNsError())
+        
+        #expect(store.receivedMessages == [.retrieve])
+    }
     
     // MARK: Helpers
     private func makeSut(currentDate: @escaping () -> Date = Date.init, sourceLocation: SourceLocation = #_sourceLocation) -> (sut: LocalFeedLoader, store: FeedStoreSpy) {
