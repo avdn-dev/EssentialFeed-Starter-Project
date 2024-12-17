@@ -89,14 +89,14 @@ final class LoadFeedFromCacheUseCaseTests {
         }
     }
     
-    @Test("Load deletes cache on retrieval error")
-    func loadDeletesCacheOnRetrievalError() async {
+    @Test("Load has no side effects on retrieval error")
+    func loadDoesNotDeleteCacheOnRetrievalError() async {
         let (sut, store) = makeSut()
         
         sut.load { _ in }
         store.completeRetrieval(with: makeNsError())
         
-        #expect(store.receivedMessages == [.retrieve, .deleteCachedFeed])
+        #expect(store.receivedMessages == [.retrieve])
     }
     
     @Test("Load does not delete cache on retrieval error when cache is already empty")

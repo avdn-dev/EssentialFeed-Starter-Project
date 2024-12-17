@@ -25,6 +25,16 @@ final class ValidateFeedCacheUseCaseTests {
         #expect(store.receivedMessages == [])
     }
     
+    @Test("Validation deletes cache on retrieval error")
+    func validateDeletesCacheOnRetrievalError() async {
+        let (sut, store) = makeSut()
+        
+        sut.validateCache()
+        store.completeRetrieval(with: makeNsError())
+        
+        #expect(store.receivedMessages == [.retrieve])
+    }
+    
     // MARK: Helpers
     private func makeSut(currentDate: @escaping () -> Date = Date.init, sourceLocation: SourceLocation = #_sourceLocation) -> (sut: LocalFeedLoader, store: FeedStoreSpy) {
         let store = FeedStoreSpy()
@@ -33,4 +43,6 @@ final class ValidateFeedCacheUseCaseTests {
         storeTracker = MemoryLeakTracker(instance: store, sourceLocation: sourceLocation)
         return (sut, store)
     }
+    
+    private func makeNsError() -> NSError { NSError(domain: "any error", code: 1) }
 }
