@@ -46,9 +46,12 @@ class CodableFeedStore {
         }
         
         let decoder = JSONDecoder()
-        let cache = try! decoder.decode(Cache.self, from: data)
-        completion(.found(feed: cache.localFeed, timestamp: cache.timestamp))
-        
+        do {
+            let cache = try decoder.decode(Cache.self, from: data)
+            completion(.found(feed: cache.localFeed, timestamp: cache.timestamp))
+        } catch {
+            completion(.failure(error))
+        }
     }
     
     func insert(_ feed: [LocalFeedImage], at timestamp: Date, completion: @escaping FeedStore.InsertionCompletion) {
@@ -109,10 +112,19 @@ final class CodableFeedStoreTests {
         await expect(sut, toRetrieveTwice: .found(feed: feed, timestamp: timestamp))
     }
     
-    // MARK: Helpers
-    private func makeSut(sourceLocation: SourceLocation = #_sourceLocation) -> CodableFeedStore {
+    @Test("Retrieve delivers failure on retrieval error")
+    func retrieveDeliversFailureOnRetrievalError() async {
         let storeUrl = makeTestStoreUrl()
-        let sut = CodableFeedStore(storeUrl: storeUrl)
+        let sut = makeSut(storeUrl: storeUrl)
+        
+        try! "invalid data".write(to: storeUrl, atomically: false, encoding: .utf8)
+        
+        await expect(sut, toRetrieve: .failure(makeNsError()))
+    }
+    
+    // MARK: Helpers
+    private func makeSut(storeUrl: URL? = nil, sourceLocation: SourceLocation = #_sourceLocation) -> CodableFeedStore {
+        let sut = CodableFeedStore(storeUrl: storeUrl ?? makeTestStoreUrl())
         sutTracker = MemoryLeakTracker(instance: sut, sourceLocation: sourceLocation)
         return sut
     }
@@ -135,7 +147,7 @@ final class CodableFeedStoreTests {
         await confirmation("Retrieve completion") { completed in
             sut.retrieve { retrievedResult in
                 switch (expectedResult, retrievedResult) {
-                case (.empty, .empty):
+                case (.empty, .empty), (.failure, .failure):
                     break
                 case let (.found(expectedFeed, expectedTimestamp), .found(retrievedFeed, retrievedTimestamp)):
                     #expect(retrievedFeed == expectedFeed, sourceLocation: sourceLocation)
