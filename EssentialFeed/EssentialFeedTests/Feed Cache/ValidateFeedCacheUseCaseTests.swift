@@ -32,6 +32,16 @@ final class ValidateFeedCacheUseCaseTests {
         sut.validateCache()
         store.completeRetrieval(with: makeNsError())
         
+        #expect(store.receivedMessages == [.retrieve, .deleteCachedFeed])
+    }
+    
+    @Test("Validation does not delete cache on empty cache")
+    func validateDeletesCacheOnEmptyCache() async {
+        let (sut, store) = makeSut()
+        
+        sut.validateCache()
+        store.completeRetrievalWithEmptyCache()
+        
         #expect(store.receivedMessages == [.retrieve])
     }
     
