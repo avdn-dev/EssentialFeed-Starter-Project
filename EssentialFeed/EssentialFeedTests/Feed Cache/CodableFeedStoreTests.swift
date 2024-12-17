@@ -57,6 +57,8 @@ class CodableFeedStore {
 }
 
 final class CodableFeedStoreTests {
+    private var sutTracker: MemoryLeakTracker<CodableFeedStore>?
+    
     init() {
         let storeUrl = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!.appending(path: "image-feed.store")
         try? FileManager.default.removeItem(at: storeUrl)
@@ -65,6 +67,7 @@ final class CodableFeedStoreTests {
     deinit {
         let storeUrl = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!.appending(path: "image-feed.store")
         try? FileManager.default.removeItem(at: storeUrl)
+        sutTracker?.verifyDeallocation()
     }
     
     @Test("Retrieve delivers nothing on empty cache")
@@ -131,7 +134,9 @@ final class CodableFeedStoreTests {
     }
     
     // MARK: Helpers
-    private func makeSut() -> CodableFeedStore {
-        return CodableFeedStore()
+    private func makeSut(sourceLocation: SourceLocation = #_sourceLocation) -> CodableFeedStore {
+        let sut = CodableFeedStore()
+        sutTracker = MemoryLeakTracker(instance: sut, sourceLocation: sourceLocation)
+        return sut
     }
 }
