@@ -9,7 +9,7 @@ import Foundation
 
 public class CodableFeedStore: FeedStore {
     private let storeUrl: URL
-    private let queue = DispatchQueue(label: "\(CodableFeedStore.self)Queue", qos: .userInitiated)
+    private let queue = DispatchQueue(label: "\(CodableFeedStore.self)Queue", qos: .userInitiated, attributes: .concurrent)
     
     private struct Cache: Codable {
         let feed: [CodableFeedImage]
@@ -60,7 +60,7 @@ public class CodableFeedStore: FeedStore {
     public func insert(_ feed: [LocalFeedImage], at timestamp: Date, completion: @escaping InsertionCompletion) {
         let storeUrl = self.storeUrl
         
-        queue.async {
+        queue.async(flags: .barrier) {
             do {
                 let encoder = JSONEncoder()
                 let cache = Cache(feed: feed.map(CodableFeedImage.init), timestamp: timestamp)
@@ -76,7 +76,7 @@ public class CodableFeedStore: FeedStore {
     public func deleteCachedFeed(completion: @escaping DeletionCompletion) {
         let storeUrl = self.storeUrl
         
-        queue.async {
+        queue.async(flags: .barrier) {
             guard FileManager.default.fileExists(atPath: storeUrl.path) else {
                 return completion(nil)
             }
