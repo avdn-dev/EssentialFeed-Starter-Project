@@ -10,7 +10,7 @@ import Foundation
 import Testing
 
 @Suite(.serialized)
-final class CodableFeedStoreTests {
+final class CodableFeedStoreTests: FailableFeedStore {
     private var sutTracker: MemoryLeakTracker<CodableFeedStore>?
     
     init() {
