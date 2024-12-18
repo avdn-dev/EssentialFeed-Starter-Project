@@ -5,8 +5,6 @@
 //  Created by Anh Nguyen on 18/12/2024.
 //
 
-import Foundation
-
 protocol FeedStoreSpecs {
     func retrieveDeliversNothingOnEmptyCache() async
     func retrieveDeliversNothingOnEmptyCacheTwice() async
@@ -40,4 +38,4 @@ protocol FailableDeleteFeedStoreSpecs: FeedStoreSpecs {
     func deleteDeliversErrorOnDeletionErrorTwice() async
 }
 
-typealias FailableFeedStore = FailableRetrieveFeedStoreSpecs & FailableInsertFeedStoreSpecs & FailableDeleteFeedStoreSpecs
+protocol FailableFeedStore: FailableRetrieveFeedStoreSpecs,  FailableInsertFeedStoreSpecs, FailableDeleteFeedStoreSpecs { }
