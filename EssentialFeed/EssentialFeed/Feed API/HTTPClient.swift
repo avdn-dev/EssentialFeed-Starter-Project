@@ -12,5 +12,7 @@ public enum HTTPClientResult {
     case failure(Error)
 }
 public protocol HTTPClient {
+    /// The completion hanler can be invoked in any thread.
+    /// Clients are responssible for dispatching to appropriate threads, if needed.
     func get(from url: URL, completion: @escaping (HTTPClientResult) -> Void)
 }
