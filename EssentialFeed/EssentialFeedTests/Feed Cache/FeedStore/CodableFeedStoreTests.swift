@@ -26,36 +26,28 @@ final class CodableFeedStoreTests: FailableFeedStore {
     func retrieveDeliversNothingOnEmptyCache() async {
         let sut = makeSut()
         
-        await expect(sut, toRetrieve: .empty)
+        await assertThatRetrieveDeliversNothingOnEmptyCache(on: sut)
     }
     
     @Test("Retrieve delivers nothing on empty cache twice with no side effect")
     func retrieveDeliversNothingOnEmptyCacheTwice() async {
         let sut = makeSut()
         
-        await expect(sut, toRetrieveTwice: .empty)
+        await assertThatRetrieveDeliversNothingOnEmptyCacheTwice(on: sut)
     }
     
     @Test("Retrieve after insert into empty cache returns initially inserted values")
     func retrieveAfterInsertDeliversInsertedValues() async {
-        let feed = makeUniqueImageFeed().local
-        let timestamp = Date()
         let sut = makeSut()
         
-        await insert((feed, timestamp), to: sut)
-        
-        await expect(sut, toRetrieve: .found(feed: feed, timestamp: timestamp))
+        await assertThatRetrieveDeliversInitiallyInsertedValues(on: sut)
     }
     
     @Test("Retrieve after insert into empty cache returns initially inserted values with no side effect")
     func retrieveAfterInsertDeliversInsertedValuesTwice() async {
-        let feed = makeUniqueImageFeed().local
-        let timestamp = Date()
         let sut = makeSut()
         
-        await insert((feed, timestamp), to: sut)
-        
-        await expect(sut, toRetrieveTwice: .found(feed: feed, timestamp: timestamp))
+        await assertThatRetrieveDeliversInitiallyInsertedValuesTwice(on: sut)
     }
     
     @Test("Retrieve delivers failure on retrieval error")
@@ -65,7 +57,7 @@ final class CodableFeedStoreTests: FailableFeedStore {
         
         try! "invalid data".write(to: storeUrl, atomically: false, encoding: .utf8)
         
-        await expect(sut, toRetrieve: .failure(makeNsError()))
+        await assertThatRetrieveDeliversFailureOnRetrievalError(on: sut)
     }
     
     @Test("Retrieve delivers failure on retrieval error with no side effect")
@@ -75,39 +67,28 @@ final class CodableFeedStoreTests: FailableFeedStore {
         
         try! "invalid data".write(to: storeUrl, atomically: false, encoding: .utf8)
         
-        await expect(sut, toRetrieveTwice: .failure(makeNsError()))
+        await assertThatRetrieveDeliversFailureOnRetrievalErrorTwice(on: sut)
     }
     
     @Test("Insert delivers no error on empty cache")
     func insertDeliversNoErrorOnEmptyCache() async {
         let sut = makeSut()
         
-        let insertionError = await insert((makeUniqueImageFeed().local, Date()), to: sut)
-        #expect(insertionError == nil)
+        await assertThatInsertDeliversNoErrorOnEmptyCache(on: sut)
     }
     
     @Test("Insert delivers no error on nonempty cache")
     func insertDeliversNoErrorOnNonemptyCache() async {
         let sut = makeSut()
         
-        await insert((makeUniqueImageFeed().local, Date()), to: sut)
-        let insertionError = await insert((makeUniqueImageFeed().local, Date()), to: sut)
-        #expect(insertionError == nil)
+        await assertThatInsertDeliversNoErrorOnNonemptyCache(on: sut)
     }
     
     @Test("Insert overwrites previously inserted cache values")
     func insertOverwritesPreviousCacheValues() async {
         let sut = makeSut()
         
-        let firstInsertionError = await insert((makeUniqueImageFeed().local, Date()), to: sut)
-        #expect(firstInsertionError == nil)
-        
-        let latestFeed = makeUniqueImageFeed().local
-        let latestTimestamp = Date()
-        let latestInsertionError = await insert((latestFeed, latestTimestamp), to: sut)
-        
-        #expect(latestInsertionError == nil)
-        await expect(sut, toRetrieve: .found(feed: latestFeed, timestamp: latestTimestamp))
+        await assertThatInsertOverwritesPreviousCacheValue(on: sut)
     }
     
     @Test("Insert delivers error on insertion error")
@@ -115,9 +96,7 @@ final class CodableFeedStoreTests: FailableFeedStore {
         let invalidStoreUrl = URL(string: "invalid://store-url")
         let sut = makeSut(storeUrl: invalidStoreUrl)
         
-        let insertionError = await insert((makeUniqueImageFeed().local  , Date()), to: sut)
-        
-        #expect(insertionError != nil)
+        await assertThatInsertDeliversErrorOnInsertionError(on: sut)
     }
     
     @Test("Insert delivers error on insertion error with no side effect")
@@ -125,49 +104,35 @@ final class CodableFeedStoreTests: FailableFeedStore {
         let invalidStoreUrl = URL(string: "invalid://store-url")
         let sut = makeSut(storeUrl: invalidStoreUrl)
         
-        await insert((makeUniqueImageFeed().local  , Date()), to: sut)
-        
-        await expect(sut, toRetrieve: .empty)
+        await assertThatInsertDeliversErrorOnInsertionErrorTwice(on: sut)
     }
     
     @Test("Delete delivers no error on empty cache")
     func deleteDeliversNoErrorOnEmptyCache() async {
         let sut = makeSut()
         
-        let deletionError = await deleteCache(from: sut)
-        
-        #expect(deletionError == nil)
+        await assertThatDeleteDeliversNoErrorOnEmptyCache(on: sut)
     }
     
     @Test("Delete has no side effects on empty cache")
     func deleteHasNoSideEffectsOnEmptyCache() async {
         let sut = makeSut()
         
-        let deletionError = await deleteCache(from: sut)
-        
-        #expect(deletionError == nil)
-        await expect(sut, toRetrieve: .empty)
+        await assertThatDeleteHasNoSideEffectsOnEmptyCache(on: sut)
     }
     
     @Test("Delete delivers no error on nonempty cache")
     func deleteDeliversNoErrorOnNonemptyCache() async {
         let sut = makeSut()
         
-        await insert((makeUniqueImageFeed().local, Date()), to: sut)
-        let deletionError = await deleteCache(from: sut)
-        
-        #expect(deletionError == nil)
+        await assertThatDeleteDeliversNoErrorOnNonemptyCache(on: sut)
     }
     
     @Test("Delete empties previously inserted cache")
     func deleteEmptiesPreviouslyInsertedCache() async {
         let sut = makeSut()
         
-        await insert((makeUniqueImageFeed().local, Date()), to: sut)
-        let deletionError = await deleteCache(from: sut)
-        
-        #expect(deletionError == nil)
-        await expect(sut, toRetrieve: .empty)
+        await assertThatDeleteEmptiesPreviouslyInsertedCache(on: sut)
     }
     
     @Test("Delete delivers error on deletion error")
@@ -175,9 +140,7 @@ final class CodableFeedStoreTests: FailableFeedStore {
         let noDeletePermissionsUrl = makeCachesDirectoryUrl()
         let sut = makeSut(storeUrl: noDeletePermissionsUrl)
         
-        let deletionError = await deleteCache(from: sut)
-        
-        #expect(deletionError != nil)
+        await assertThatDeleteDeliversErrorOnDeletionError(on: sut)
     }
     
     @Test("Delete delivers error on deletion error with no side effect")
@@ -185,37 +148,14 @@ final class CodableFeedStoreTests: FailableFeedStore {
         let noDeletePermissionsUrl = makeCachesDirectoryUrl()
         let sut = makeSut(storeUrl: noDeletePermissionsUrl)
         
-        _ = await deleteCache(from: sut)
-        
-        await expect(sut, toRetrieve: .empty)
+        await assertThatDeleteDeliversErrorOnDeletionErrorTwice(on: sut)
     }
     
     @Test("Store side effects run serially")
     func storeSideEffectsRunSerially() async {
         let sut = makeSut()
-        var completedOperationsInOrder = [Int]()
         
-        await confirmation("Operations complete", expectedCount: 3) {
-            completed in
-            sut.insert(makeUniqueImageFeed().local, at: Date()) { _ in
-                completedOperationsInOrder.append(1)
-                completed()
-            }
-            
-            sut.deleteCachedFeed { _ in
-                completedOperationsInOrder.append(2)
-                completed()
-            }
-            
-            sut.insert(makeUniqueImageFeed().local, at: Date()) { _ in
-                completedOperationsInOrder.append(3)
-                completed()
-            }
-            
-            try? await Task.sleep(for: .milliseconds(500))
-        }
-        
-        #expect(completedOperationsInOrder == [1, 2, 3])
+        await assertThatStoreSideEffectsRunSerially(on: sut)
     }
     
     // MARK: Helpers
