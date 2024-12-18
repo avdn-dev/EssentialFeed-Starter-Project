@@ -14,7 +14,7 @@ extension FailableRetrieveFeedStoreSpecs {
         await expect(sut, toRetrieve: .failure(makeNsError()), sourceLocation: sourceLocation)
     }
     
-    func assertThatRetrieveDeliversFailureOnRetrievalErrorTwice(on sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async {
+    func assertThatRetrieveDeliversFailureOnRetrievalErrorWithNoSideEffect(on sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async {
         await expect(sut, toRetrieveTwice: .failure(makeNsError()), sourceLocation: sourceLocation)
     }
 }

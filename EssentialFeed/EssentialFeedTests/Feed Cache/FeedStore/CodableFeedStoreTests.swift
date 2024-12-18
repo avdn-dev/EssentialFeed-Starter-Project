@@ -44,10 +44,10 @@ final class CodableFeedStoreTests: FailableFeedStore {
     }
     
     @Test("Retrieve after insert into empty cache returns initially inserted values with no side effect")
-    func retrieveAfterInsertDeliversInsertedValuesTwice() async {
+    func retrieveAfterInsertDeliversInsertedValuesWithNoSideEffect() async {
         let sut = makeSut()
         
-        await assertThatRetrieveDeliversInitiallyInsertedValuesTwice(on: sut)
+        await assertThatRetrieveDeliversInitiallyInsertedValuesWithNoSideEffect(on: sut)
     }
     
     @Test("Retrieve delivers failure on retrieval error")
@@ -61,13 +61,13 @@ final class CodableFeedStoreTests: FailableFeedStore {
     }
     
     @Test("Retrieve delivers failure on retrieval error with no side effect")
-    func retrieveDeliversFailureOnRetrievalErrorTwice() async {
+    func retrieveDeliversFailureOnRetrievalErrorWithNoSideEffect() async {
         let storeUrl = makeTestStoreUrl()
         let sut = makeSut(storeUrl: storeUrl)
         
         try! "invalid data".write(to: storeUrl, atomically: false, encoding: .utf8)
         
-        await assertThatRetrieveDeliversFailureOnRetrievalErrorTwice(on: sut)
+        await assertThatRetrieveDeliversFailureOnRetrievalErrorWithNoSideEffect(on: sut)
     }
     
     @Test("Insert delivers no error on empty cache")
@@ -100,11 +100,11 @@ final class CodableFeedStoreTests: FailableFeedStore {
     }
     
     @Test("Insert delivers error on insertion error with no side effect")
-    func insertDeliversErrorOnInsertionErrorTwice() async {
+    func insertDeliversErrorOnInsertionErrorWithNoSideEffect() async {
         let invalidStoreUrl = URL(string: "invalid://store-url")
         let sut = makeSut(storeUrl: invalidStoreUrl)
         
-        await assertThatInsertDeliversErrorOnInsertionErrorTwice(on: sut)
+        await assertThatInsertDeliversErrorOnInsertionErrorWithNoSideEffect(on: sut)
     }
     
     @Test("Delete delivers no error on empty cache")
@@ -144,11 +144,11 @@ final class CodableFeedStoreTests: FailableFeedStore {
     }
     
     @Test("Delete delivers error on deletion error with no side effect")
-    func deleteDeliversErrorOnDeletionErrorTwice() async {
+    func deleteDeliversErrorOnDeletionErrorWithNoSideEffect() async {
         let noDeletePermissionsUrl = makeCachesDirectoryUrl()
         let sut = makeSut(storeUrl: noDeletePermissionsUrl)
         
-        await assertThatDeleteDeliversErrorOnDeletionErrorTwice(on: sut)
+        await assertThatDeleteDeliversErrorOnDeletionErrorWithNoSideEffect(on: sut)
     }
     
     @Test("Store side effects run serially")

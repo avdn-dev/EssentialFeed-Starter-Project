@@ -86,7 +86,7 @@ extension FeedStoreSpecs {
         await expect(sut, toRetrieve: .found(feed: feed, timestamp: timestamp))
     }
     
-    func assertThatRetrieveDeliversInitiallyInsertedValuesTwice(on sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async {
+    func assertThatRetrieveDeliversInitiallyInsertedValuesWithNoSideEffect(on sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async {
         let feed = makeUniqueImageFeed().local
         let timestamp = Date()
         

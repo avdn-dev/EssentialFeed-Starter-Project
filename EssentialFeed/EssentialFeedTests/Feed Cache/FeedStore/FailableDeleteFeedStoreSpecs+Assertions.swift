@@ -16,7 +16,7 @@ extension FailableDeleteFeedStoreSpecs {
         #expect(deletionError != nil, sourceLocation: sourceLocation)
     }
     
-    func assertThatDeleteDeliversErrorOnDeletionErrorTwice(on sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async {
+    func assertThatDeleteDeliversErrorOnDeletionErrorWithNoSideEffect(on sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async {
         _ = await deleteCache(from: sut)
         
         await expect(sut, toRetrieve: .empty, sourceLocation: sourceLocation)

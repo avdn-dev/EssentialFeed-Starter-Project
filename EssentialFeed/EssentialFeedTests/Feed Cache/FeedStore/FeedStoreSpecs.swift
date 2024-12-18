@@ -9,7 +9,7 @@ protocol FeedStoreSpecs {
     func retrieveDeliversNothingOnEmptyCache() async
     func retrieveDeliversNothingOnEmptyCacheTwice() async
     func retrieveAfterInsertDeliversInsertedValues() async
-    func retrieveAfterInsertDeliversInsertedValuesTwice() async
+    func retrieveAfterInsertDeliversInsertedValuesWithNoSideEffect() async
     
     func insertDeliversNoErrorOnEmptyCache() async
     func insertDeliversNoErrorOnNonemptyCache() async
@@ -25,17 +25,17 @@ protocol FeedStoreSpecs {
 
 protocol FailableRetrieveFeedStoreSpecs: FeedStoreSpecs {
     func retrieveDeliversFailureOnRetrievalError() async
-    func retrieveDeliversFailureOnRetrievalErrorTwice() async
+    func retrieveDeliversFailureOnRetrievalErrorWithNoSideEffect() async
 }
 
 protocol FailableInsertFeedStoreSpecs: FeedStoreSpecs {
     func insertDeliversErrorOnInsertionError() async
-    func insertDeliversErrorOnInsertionErrorTwice() async
+    func insertDeliversErrorOnInsertionErrorWithNoSideEffect() async
 }
 
 protocol FailableDeleteFeedStoreSpecs: FeedStoreSpecs {
     func deleteDeliversErrorOnDeletionError() async
-    func deleteDeliversErrorOnDeletionErrorTwice() async
+    func deleteDeliversErrorOnDeletionErrorWithNoSideEffect() async
 }
 
 protocol FailableFeedStore: FailableRetrieveFeedStoreSpecs,  FailableInsertFeedStoreSpecs, FailableDeleteFeedStoreSpecs { }

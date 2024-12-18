@@ -16,7 +16,7 @@ extension FailableInsertFeedStoreSpecs {
         #expect(insertionError != nil, sourceLocation: sourceLocation)
     }
     
-    func assertThatInsertDeliversErrorOnInsertionErrorTwice(on sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async {
+    func assertThatInsertDeliversErrorOnInsertionErrorWithNoSideEffect(on sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async {
         await insert((makeUniqueImageFeed().local  , Date()), to: sut)
         
         await expect(sut, toRetrieve: .empty, sourceLocation: sourceLocation)
