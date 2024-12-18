@@ -78,6 +78,23 @@ final class CodableFeedStoreTests {
         await expect(sut, toRetrieveTwice: .failure(makeNsError()))
     }
     
+    @Test("Insert delivers no error on empty cache")
+    func insertDeliversNoErrorOnEmptyCache() async {
+        let sut = makeSut()
+        
+        let insertionError = await insert((makeUniqueImageFeed().local, Date()), to: sut)
+        #expect(insertionError == nil)
+    }
+    
+    @Test("Insert delivers no error on nonempty cache")
+    func insertDeliversNoErrorOnNonemptyCache() async {
+        let sut = makeSut()
+        
+        await insert((makeUniqueImageFeed().local, Date()), to: sut)
+        let insertionError = await insert((makeUniqueImageFeed().local, Date()), to: sut)
+        #expect(insertionError == nil)
+    }
+    
     @Test("Insert overwrites previously inserted cache values")
     func insertOverwritesPreviousCacheValues() async {
         let sut = makeSut()
@@ -113,6 +130,15 @@ final class CodableFeedStoreTests {
         await expect(sut, toRetrieve: .empty)
     }
     
+    @Test("Delete delivers no error on empty cache")
+    func deleteDeliversNoErrorOnEmptyCache() async {
+        let sut = makeSut()
+        
+        let deletionError = await deleteCache(from: sut)
+        
+        #expect(deletionError == nil)
+    }
+    
     @Test("Delete has no side effects on empty cache")
     func deleteHasNoSideEffectsOnEmptyCache() async {
         let sut = makeSut()
@@ -121,6 +147,16 @@ final class CodableFeedStoreTests {
         
         #expect(deletionError == nil)
         await expect(sut, toRetrieve: .empty)
+    }
+    
+    @Test("Delete delivers no error on nonempty cache")
+    func deleteDeliversNoErrorOnNonemptyCache() async {
+        let sut = makeSut()
+        
+        await insert((makeUniqueImageFeed().local, Date()), to: sut)
+        let deletionError = await deleteCache(from: sut)
+        
+        #expect(deletionError == nil)
     }
     
     @Test("Delete empties previously inserted cache")
@@ -142,6 +178,15 @@ final class CodableFeedStoreTests {
         let deletionError = await deleteCache(from: sut)
         
         #expect(deletionError != nil)
+    }
+    
+    @Test("Delete delivers error on deletion error with no side effect")
+    func deleteDeliversErrorOnDeletionErrorTwice() async {
+        let noDeletePermissionsUrl = makeCachesDirectoryUrl()
+        let sut = makeSut(storeUrl: noDeletePermissionsUrl)
+        
+        _ = await deleteCache(from: sut)
+        
         await expect(sut, toRetrieve: .empty)
     }
     
