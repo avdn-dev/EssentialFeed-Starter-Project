@@ -103,6 +103,16 @@ final class CodableFeedStoreTests {
         #expect(insertionError != nil)
     }
     
+    @Test("Insert delivers error on insertion error with no side effect")
+    func insertDeliversErrorOnInsertionErrorTwice() async {
+        let invalidStoreUrl = URL(string: "invalid://store-url")
+        let sut = makeSut(storeUrl: invalidStoreUrl)
+        
+        await insert((makeUniqueImageFeed().local  , Date()), to: sut)
+        
+        await expect(sut, toRetrieve: .empty)
+    }
+    
     @Test("Delete has no side effects on empty cache")
     func deleteHasNoSideEffectsOnEmptyCache() async {
         let sut = makeSut()
@@ -188,18 +198,21 @@ final class CodableFeedStoreTests {
     
     private func expect(_ sut: FeedStore, toRetrieve expectedResult: RetrieveCachedFeedResult, sourceLocation: SourceLocation = #_sourceLocation) async {
         await confirmation("Retrieve completion") { completed in
-            sut.retrieve { retrievedResult in
-                switch (expectedResult, retrievedResult) {
-                case (.empty, .empty), (.failure, .failure):
-                    break
-                case let (.found(expectedFeed, expectedTimestamp), .found(retrievedFeed, retrievedTimestamp)):
-                    #expect(retrievedFeed == expectedFeed, sourceLocation: sourceLocation)
-                    #expect(retrievedTimestamp == expectedTimestamp, sourceLocation: sourceLocation)
-                default:
-                    Issue.record("Expected to retrieve \(expectedResult), got \(retrievedResult) instead", sourceLocation: sourceLocation)
+            await withCheckedContinuation { continuation in
+                sut.retrieve { retrievedResult in
+                    switch (expectedResult, retrievedResult) {
+                    case (.empty, .empty), (.failure, .failure):
+                        break
+                    case let (.found(expectedFeed, expectedTimestamp), .found(retrievedFeed, retrievedTimestamp)):
+                        #expect(retrievedFeed == expectedFeed, sourceLocation: sourceLocation)
+                        #expect(retrievedTimestamp == expectedTimestamp, sourceLocation: sourceLocation)
+                    default:
+                        Issue.record("Expected to retrieve \(expectedResult), got \(retrievedResult) instead", sourceLocation: sourceLocation)
+                    }
+                    
+                    continuation.resume()
+                    completed()
                 }
-                
-                completed()
             }
         }
     }
@@ -214,9 +227,12 @@ final class CodableFeedStoreTests {
         var insertionError: Error?
         
         await confirmation("Insert completion") { completed in
-            sut.insert(cache.feed, at: cache.timestamp) { receivedInsertionError in
-                insertionError = receivedInsertionError
-                completed()
+            await withCheckedContinuation { continuation in
+                sut.insert(cache.feed, at: cache.timestamp) { receivedInsertionError in
+                    insertionError = receivedInsertionError
+                    continuation.resume()
+                    completed()
+                }
             }
         }
         
@@ -227,9 +243,12 @@ final class CodableFeedStoreTests {
         var deletionError: Error?
         
         await confirmation("Delete completion") { completed in
-            sut.deleteCachedFeed { receivedDeletionError in
-                deletionError = receivedDeletionError
-                completed()
+            await withCheckedContinuation { continuation in
+                sut.deleteCachedFeed { receivedDeletionError in
+                    deletionError = receivedDeletionError
+                    continuation.resume()
+                    completed()
+                }
             }
         }
         
