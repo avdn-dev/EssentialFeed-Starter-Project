@@ -135,6 +135,34 @@ final class CodableFeedStoreTests {
         await expect(sut, toRetrieve: .empty)
     }
     
+    @Test("Store side effects run serially")
+    func storeSideEffectsRunSerially() async {
+        let sut = makeSut()
+        var completedOperationsInOrder = [Int]()
+        
+        await confirmation("Operations complete", expectedCount: 3) {
+            completed in
+            sut.insert(makeUniqueImageFeed().local, at: Date()) { _ in
+                completedOperationsInOrder.append(1)
+                completed()
+            }
+            
+            sut.deleteCachedFeed { _ in
+                completedOperationsInOrder.append(2)
+                completed()
+            }
+            
+            sut.insert(makeUniqueImageFeed().local, at: Date()) { _ in
+                completedOperationsInOrder.append(3)
+                completed()
+            }
+            
+            try? await Task.sleep(for: .milliseconds(500))
+        }
+        
+        #expect(completedOperationsInOrder == [1, 2, 3])
+    }
+    
     // MARK: Helpers
     private func makeSut(storeUrl: URL? = nil, sourceLocation: SourceLocation = #_sourceLocation) -> FeedStore {
         let sut = CodableFeedStore(storeUrl: storeUrl ?? makeTestStoreUrl())
