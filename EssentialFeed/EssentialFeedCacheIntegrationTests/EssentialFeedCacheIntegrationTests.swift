@@ -9,6 +9,7 @@ import EssentialFeed
 import Testing
 import Foundation
 
+@Suite(.serialized)
 final class EssentialFeedCacheIntegrationTests {
     private var sutTracker: MemoryLeakTracker<LocalFeedLoader>?
     private var storeTracker: MemoryLeakTracker<CodableFeedStore>?
