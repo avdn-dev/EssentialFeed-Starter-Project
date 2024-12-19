@@ -44,6 +44,40 @@ final class EssentialFeedCacheIntegrationTests {
         }
     }
     
+    @Test("Load delivers items saved on a separate instance")
+    func loadDeliversItemsSavedOnASeparateInstance() async {
+        let sutToPerformSave = makeSut()
+        let sutToPerformLoad = makeSut()
+        let feed = makeUniqueImageFeed().models
+        
+        await confirmation("Save completion") { complete in
+            await withCheckedContinuation { continuation in
+                sutToPerformSave.save(feed) { saveError in
+                    #expect(saveError == nil)
+                    
+                    continuation.resume()
+                    complete()
+                }
+            }
+        }
+        
+        await confirmation("Save completion") { complete in
+            await withCheckedContinuation { continuation in
+                sutToPerformLoad.load { loadResult in
+                    switch loadResult {
+                    case let .success(imageFeed):
+                        #expect(imageFeed == feed)
+                    case let .failure(error):
+                        Issue.record("Expected successful feed result, got \(error) instead")
+                    }
+                    
+                    continuation.resume()
+                    complete()
+                }
+            }
+        }
+    }
+    
     // MARK: Helpers
     private func makeSut(sourceLocation: SourceLocation = #_sourceLocation) -> LocalFeedLoader {
         let store = CodableFeedStore(storeUrl: makeTestStoreUrl())
