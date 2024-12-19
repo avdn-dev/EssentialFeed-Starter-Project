@@ -82,7 +82,7 @@ final class EssentialFeedCacheIntegrationTests {
     }
     
     private func expect(_ sut: LocalFeedLoader, toLoad expectedFeed: [FeedImage], sourceLocation: SourceLocation = #_sourceLocation) async {
-        await confirmation("Load completion") { complete in
+        await confirmation("Load completion", sourceLocation: sourceLocation) { complete in
             await withCheckedContinuation { continuation in
                 sut.load { result in
                     switch result {
@@ -100,7 +100,7 @@ final class EssentialFeedCacheIntegrationTests {
     }
     
     private func save(_ feed: [FeedImage], with loader: LocalFeedLoader, sourceLocation: SourceLocation = #_sourceLocation) async {
-        await confirmation("Save completion") { complete in
+        await confirmation("Save completion", sourceLocation: sourceLocation) { complete in
             await withCheckedContinuation { continuation in
                 loader.save(feed) { saveError in
                     #expect(saveError == nil)

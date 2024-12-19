@@ -129,7 +129,7 @@ final class CacheFeedUseCaseTests {
     private func expect(_ sut: LocalFeedLoader, toCompleteWithError expectedError: NSError?, when action: () -> Void, sourceLocation: SourceLocation = #_sourceLocation) async {
         var receivedError: Error?
         
-        await confirmation("Save completion") { completed in
+        await confirmation("Save completion", sourceLocation: sourceLocation) { completed in
             sut.save(makeUniqueImageFeed().models) { error in
                 receivedError = error
                 completed()

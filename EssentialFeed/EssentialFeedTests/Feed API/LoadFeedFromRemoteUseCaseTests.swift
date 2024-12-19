@@ -140,7 +140,7 @@ final class LoadFeedFromRemoteUseCaseTests {
     }
     
     private func expect(_ sut: RemoteFeedLoader, toCompleteWithResult expectedResult: RemoteFeedLoader.Result, when action: @escaping () -> Void, sourceLocation: SourceLocation = #_sourceLocation) async {
-        await confirmation("Load completion") { loaded in
+        await confirmation("Load completion", sourceLocation: sourceLocation) { loaded in
             sut.load { receivedResult in
                 switch (receivedResult, expectedResult) {
                 case let (.success(receivedItems), .success(expectedItems)): #expect(receivedItems == expectedItems, sourceLocation: sourceLocation)

@@ -172,7 +172,7 @@ final class LoadFeedFromCacheUseCaseTests {
     }
     
     private func expect(_ sut: LocalFeedLoader, toCompleteWith expectedResult: LocalFeedLoader.LoadResult, when action: () -> Void, sourceLocation: SourceLocation = #_sourceLocation) async {
-        await confirmation("Load completion") { loaded in
+        await confirmation("Load completion", sourceLocation: sourceLocation) { loaded in
             sut.load { receivedResult in
                 switch (receivedResult, expectedResult ) {
                 case let (.success(receivedImages), .success(expectedImages)):

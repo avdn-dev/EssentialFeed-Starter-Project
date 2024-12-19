@@ -11,7 +11,7 @@ import Testing
 
 extension FeedStoreSpecs {
     func expect(_ sut: FeedStore, toRetrieve expectedResult: RetrieveCachedFeedResult, sourceLocation: SourceLocation = #_sourceLocation) async {
-        await confirmation("Retrieve completion") { completed in
+        await confirmation("Retrieve completion", sourceLocation: sourceLocation) { completed in
             await withCheckedContinuation { continuation in
                 sut.retrieve { retrievedResult in
                     switch (expectedResult, retrievedResult) {
@@ -37,10 +37,10 @@ extension FeedStoreSpecs {
     }
     
     @discardableResult
-    func insert(_ cache: (feed: [LocalFeedImage], timestamp: Date), to sut: FeedStore) async -> Error? {
+    func insert(_ cache: (feed: [LocalFeedImage], timestamp: Date), to sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async -> Error? {
         var insertionError: Error?
         
-        await confirmation("Insert completion") { completed in
+        await confirmation("Insert completion", sourceLocation: sourceLocation) { completed in
             await withCheckedContinuation { continuation in
                 sut.insert(cache.feed, at: cache.timestamp) { receivedInsertionError in
                     insertionError = receivedInsertionError
@@ -53,10 +53,10 @@ extension FeedStoreSpecs {
         return insertionError
     }
     
-    func deleteCache(from sut: FeedStore) async -> Error? {
+    func deleteCache(from sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async -> Error? {
         var deletionError: Error?
         
-        await confirmation("Delete completion") { completed in
+        await confirmation("Delete completion", sourceLocation: sourceLocation) { completed in
             await withCheckedContinuation { continuation in
                 sut.deleteCachedFeed { receivedDeletionError in
                     deletionError = receivedDeletionError
@@ -150,7 +150,7 @@ extension FeedStoreSpecs {
     func assertThatStoreSideEffectsRunSerially(on sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async {
         var completedOperationsInOrder = [Int]()
         
-        await confirmation("Operations complete", expectedCount: 3) {
+        await confirmation("Operations complete", expectedCount: 3, sourceLocation: sourceLocation) {
             completed in
             sut.insert(makeUniqueImageFeed().local, at: Date()) { _ in
                 completedOperationsInOrder.append(1)
