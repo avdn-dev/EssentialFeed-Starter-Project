@@ -36,16 +36,7 @@ final class EssentialFeedCacheIntegrationTests {
         let sutToPerformLoad = makeSut()
         let feed = makeUniqueImageFeed().models
         
-        await confirmation("Save completion") { complete in
-            await withCheckedContinuation { continuation in
-                sutToPerformSave.save(feed) { saveError in
-                    #expect(saveError == nil)
-                    
-                    continuation.resume()
-                    complete()
-                }
-            }
-        }
+        await save(feed, with: sutToPerformSave)
         
         await expect(sutToPerformLoad, toLoad: feed)
     }
@@ -58,27 +49,8 @@ final class EssentialFeedCacheIntegrationTests {
         let firstFeed = makeUniqueImageFeed().models
         let secondFeed = makeUniqueImageFeed().models
         
-        await confirmation("First save completion") { complete in
-            await withCheckedContinuation { continuation in
-                sutToPerformFirstSave.save(firstFeed) { saveError in
-                    #expect(saveError == nil)
-                    
-                    continuation.resume()
-                    complete()
-                }
-            }
-        }
-        
-        await confirmation("Second save completion") { complete in
-            await withCheckedContinuation { continuation in
-                sutToPerformFirstSave.save(secondFeed) { saveError in
-                    #expect(saveError == nil)
-                    
-                    continuation.resume()
-                    complete()
-                }
-            }
-        }
+        await save(firstFeed, with: sutToPerformFirstSave)
+        await save(secondFeed, with: sutToPerformSecondSave)
         
         await expect(sutToPerformLoad, toLoad: secondFeed)
     }
@@ -118,6 +90,19 @@ final class EssentialFeedCacheIntegrationTests {
                     case let .failure(error):
                         Issue.record("Expected successful feed result, got \(error) instead")
                     }
+                    
+                    continuation.resume()
+                    complete()
+                }
+            }
+        }
+    }
+    
+    private func save(_ feed: [FeedImage], with loader: LocalFeedLoader, sourceLocation: SourceLocation = #_sourceLocation) async {
+        await confirmation("Save completion") { complete in
+            await withCheckedContinuation { continuation in
+                loader.save(feed) { saveError in
+                    #expect(saveError == nil)
                     
                     continuation.resume()
                     complete()
