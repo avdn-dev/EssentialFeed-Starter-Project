@@ -27,21 +27,7 @@ final class EssentialFeedCacheIntegrationTests {
     func loadDeliversNoItemsFromEmptyCache() async {
         let sut = makeSut()
         
-        await confirmation("Load completion") { complete in
-            await withCheckedContinuation { continuation in
-                sut.load { result in
-                    switch result {
-                    case let .success(imageFeed):
-                        #expect(imageFeed.isEmpty)
-                    case let .failure(error):
-                        Issue.record("Expected successful feed result, got \(error) instead")
-                    }
-                    
-                    continuation.resume()
-                    complete()
-                }
-            }
-        }
+        await expect(sut, toLoad: [])
     }
     
     @Test("Load delivers items saved on a separate instance")
@@ -61,21 +47,7 @@ final class EssentialFeedCacheIntegrationTests {
             }
         }
         
-        await confirmation("Save completion") { complete in
-            await withCheckedContinuation { continuation in
-                sutToPerformLoad.load { loadResult in
-                    switch loadResult {
-                    case let .success(imageFeed):
-                        #expect(imageFeed == feed)
-                    case let .failure(error):
-                        Issue.record("Expected successful feed result, got \(error) instead")
-                    }
-                    
-                    continuation.resume()
-                    complete()
-                }
-            }
-        }
+        await expect(sutToPerformLoad, toLoad: feed)
     }
     
     // MARK: Helpers
@@ -101,5 +73,23 @@ final class EssentialFeedCacheIntegrationTests {
     
     private func deleteStoreArtifacts() {
         try? FileManager.default.removeItem(at: makeTestStoreUrl())
+    }
+    
+    private func expect(_ sut: LocalFeedLoader, toLoad expectedFeed: [FeedImage], sourceLocation: SourceLocation = #_sourceLocation) async {
+        await confirmation("Load completion") { complete in
+            await withCheckedContinuation { continuation in
+                sut.load { result in
+                    switch result {
+                    case let .success(loadedFeed):
+                        #expect(loadedFeed == expectedFeed)
+                    case let .failure(error):
+                        Issue.record("Expected successful feed result, got \(error) instead")
+                    }
+                    
+                    continuation.resume()
+                    complete()
+                }
+            }
+        }
     }
 }
