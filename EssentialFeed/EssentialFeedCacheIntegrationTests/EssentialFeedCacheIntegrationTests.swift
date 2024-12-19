@@ -50,6 +50,39 @@ final class EssentialFeedCacheIntegrationTests {
         await expect(sutToPerformLoad, toLoad: feed)
     }
     
+    @Test("Save overrides items saved on a separate instance")
+    func saveOverridesItemsSavedOnASeparateInstance() async {
+        let sutToPerformFirstSave = makeSut()
+        let sutToPerformSecondSave = makeSut()
+        let sutToPerformLoad = makeSut()
+        let firstFeed = makeUniqueImageFeed().models
+        let secondFeed = makeUniqueImageFeed().models
+        
+        await confirmation("First save completion") { complete in
+            await withCheckedContinuation { continuation in
+                sutToPerformFirstSave.save(firstFeed) { saveError in
+                    #expect(saveError == nil)
+                    
+                    continuation.resume()
+                    complete()
+                }
+            }
+        }
+        
+        await confirmation("Second save completion") { complete in
+            await withCheckedContinuation { continuation in
+                sutToPerformFirstSave.save(secondFeed) { saveError in
+                    #expect(saveError == nil)
+                    
+                    continuation.resume()
+                    complete()
+                }
+            }
+        }
+        
+        await expect(sutToPerformLoad, toLoad: secondFeed)
+    }
+    
     // MARK: Helpers
     private func makeSut(sourceLocation: SourceLocation = #_sourceLocation) -> LocalFeedLoader {
         let store = CodableFeedStore(storeUrl: makeTestStoreUrl())
