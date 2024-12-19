@@ -13,7 +13,12 @@ final class EssentialFeedCacheIntegrationTests {
     private var sutTracker: MemoryLeakTracker<LocalFeedLoader>?
     private var storeTracker: MemoryLeakTracker<CodableFeedStore>?
 
+    init() {
+        setupEmptyStoreState()
+    }
+    
     deinit {
+        undoStoreSideEffects()
         sutTracker?.verifyDeallocation()
         storeTracker?.verifyDeallocation()
     }
@@ -51,4 +56,16 @@ final class EssentialFeedCacheIntegrationTests {
     private func makeTestStoreUrl() -> URL { makeCachesDirectoryUrl().appending(path: "\(type(of: self)).store") }
     
     private func makeCachesDirectoryUrl() -> URL { FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first! }
+    
+    private func setupEmptyStoreState() {
+        deleteStoreArtifacts()
+    }
+    
+    private func undoStoreSideEffects() {
+        deleteStoreArtifacts()
+    }
+    
+    private func deleteStoreArtifacts() {
+        try? FileManager.default.removeItem(at: makeTestStoreUrl())
+    }
 }
