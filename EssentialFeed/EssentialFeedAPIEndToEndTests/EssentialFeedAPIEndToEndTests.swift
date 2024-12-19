@@ -41,13 +41,11 @@ struct EssentialFeedAPIEndToEndTests {
         let loader = RemoteFeedLoader(url: testServerUrl, client: client)
         
         var receivedResult: LoadFeedResult?
-        await confirmation("API call completed", sourceLocation: sourceLocation) { completed in
+        await confirmationWithCheckedContinuation("API call completed", sourceLocation: sourceLocation) { completed in
             loader.load { result in
                 receivedResult = result
                 completed()
             }
-            
-            try? await Task.sleep(for: .networkWaitTime)
         }
         
         return receivedResult

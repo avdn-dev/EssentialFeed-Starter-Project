@@ -11,22 +11,18 @@ import Testing
 
 extension FeedStoreSpecs {
     func expect(_ sut: FeedStore, toRetrieve expectedResult: RetrieveCachedFeedResult, sourceLocation: SourceLocation = #_sourceLocation) async {
-        await confirmation("Retrieve completion", sourceLocation: sourceLocation) { completed in
-            await withCheckedContinuation { continuation in
-                sut.retrieve { retrievedResult in
-                    switch (expectedResult, retrievedResult) {
-                    case (.empty, .empty), (.failure, .failure):
-                        break
-                    case let (.found(expectedFeed, expectedTimestamp), .found(retrievedFeed, retrievedTimestamp)):
-                        #expect(retrievedFeed == expectedFeed, sourceLocation: sourceLocation)
-                        #expect(retrievedTimestamp == expectedTimestamp, sourceLocation: sourceLocation)
-                    default:
-                        Issue.record("Expected to retrieve \(expectedResult), got \(retrievedResult) instead", sourceLocation: sourceLocation)
-                    }
-                    
-                    continuation.resume()
-                    completed()
+        await confirmationWithCheckedContinuation("Retrieve completion", sourceLocation: sourceLocation) { completed in
+            sut.retrieve { retrievedResult in
+                switch (expectedResult, retrievedResult) {
+                case (.empty, .empty), (.failure, .failure):
+                    break
+                case let (.found(expectedFeed, expectedTimestamp), .found(retrievedFeed, retrievedTimestamp)):
+                    #expect(retrievedFeed == expectedFeed, sourceLocation: sourceLocation)
+                    #expect(retrievedTimestamp == expectedTimestamp, sourceLocation: sourceLocation)
+                default:
+                    Issue.record("Expected to retrieve \(expectedResult), got \(retrievedResult) instead", sourceLocation: sourceLocation)
                 }
+                completed()
             }
         }
     }
@@ -40,13 +36,10 @@ extension FeedStoreSpecs {
     func insert(_ cache: (feed: [LocalFeedImage], timestamp: Date), to sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async -> Error? {
         var insertionError: Error?
         
-        await confirmation("Insert completion", sourceLocation: sourceLocation) { completed in
-            await withCheckedContinuation { continuation in
-                sut.insert(cache.feed, at: cache.timestamp) { receivedInsertionError in
-                    insertionError = receivedInsertionError
-                    continuation.resume()
-                    completed()
-                }
+        await confirmationWithCheckedContinuation("Insert completion", sourceLocation: sourceLocation) { completed in
+            sut.insert(cache.feed, at: cache.timestamp) { receivedInsertionError in
+                insertionError = receivedInsertionError
+                completed()
             }
         }
         
@@ -56,13 +49,10 @@ extension FeedStoreSpecs {
     func deleteCache(from sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async -> Error? {
         var deletionError: Error?
         
-        await confirmation("Delete completion", sourceLocation: sourceLocation) { completed in
-            await withCheckedContinuation { continuation in
-                sut.deleteCachedFeed { receivedDeletionError in
-                    deletionError = receivedDeletionError
-                    continuation.resume()
-                    completed()
-                }
+        await confirmationWithCheckedContinuation("Delete completion", sourceLocation: sourceLocation) { completed in
+            sut.deleteCachedFeed { receivedDeletionError in
+                deletionError = receivedDeletionError
+                completed()
             }
         }
         

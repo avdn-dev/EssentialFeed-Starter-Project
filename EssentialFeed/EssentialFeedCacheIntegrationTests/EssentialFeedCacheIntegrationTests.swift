@@ -13,7 +13,7 @@ import Foundation
 final class EssentialFeedCacheIntegrationTests {
     private var sutTracker: MemoryLeakTracker<LocalFeedLoader>?
     private var storeTracker: MemoryLeakTracker<CodableFeedStore>?
-
+    
     init() {
         setupEmptyStoreState()
     }
@@ -82,32 +82,25 @@ final class EssentialFeedCacheIntegrationTests {
     }
     
     private func expect(_ sut: LocalFeedLoader, toLoad expectedFeed: [FeedImage], sourceLocation: SourceLocation = #_sourceLocation) async {
-        await confirmation("Load completion", sourceLocation: sourceLocation) { complete in
-            await withCheckedContinuation { continuation in
-                sut.load { result in
-                    switch result {
-                    case let .success(loadedFeed):
-                        #expect(loadedFeed == expectedFeed)
-                    case let .failure(error):
-                        Issue.record("Expected successful feed result, got \(error) instead")
-                    }
-                    
-                    continuation.resume()
-                    complete()
+        await confirmationWithCheckedContinuation("Load completion") { complete in
+            sut.load { result in
+                switch result {
+                case let .success(loadedFeed):
+                    #expect(loadedFeed == expectedFeed)
+                case let .failure(error):
+                    Issue.record("Expected successful feed result, got \(error) instead")
                 }
+                
+                complete()
             }
         }
     }
     
     private func save(_ feed: [FeedImage], with loader: LocalFeedLoader, sourceLocation: SourceLocation = #_sourceLocation) async {
-        await confirmation("Save completion", sourceLocation: sourceLocation) { complete in
-            await withCheckedContinuation { continuation in
-                loader.save(feed) { saveError in
-                    #expect(saveError == nil)
-                    
-                    continuation.resume()
-                    complete()
-                }
+        await confirmationWithCheckedContinuation("Save completion", sourceLocation: sourceLocation) { complete in
+            loader.save(feed) { saveError in
+                #expect(saveError == nil)
+                complete()
             }
         }
     }

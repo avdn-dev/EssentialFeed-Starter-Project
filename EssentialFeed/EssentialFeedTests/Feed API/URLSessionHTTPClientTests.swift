@@ -27,18 +27,14 @@ final class URLSessionHTTPClientTests {
     func getFromUrlPerformsGetRequestWithUrl() async {
         let url = makeUrl()
         
-        await confirmation("Request completion") { completed in
-            await withCheckedContinuation { continuation in
-                URLProtocolStub.observeRequests { request in
-                    #expect(request.url == url)
-                    #expect(request.httpMethod == "GET")
-                    continuation.resume()
-                    
-                    completed()
-                }
-                
-                makeSut().get(from: url) { _ in }
+        await confirmationWithCheckedContinuation("Request completion") { completed in
+            URLProtocolStub.observeRequests { request in
+                #expect(request.url == url)
+                #expect(request.httpMethod == "GET")
+                completed()
             }
+            
+            makeSut().get(from: url) { _ in }
         }
     }
     
@@ -130,14 +126,10 @@ final class URLSessionHTTPClientTests {
         
         var receivedResult: HTTPClientResult!
         
-        await confirmation("Load completion", sourceLocation: sourceLocation) { completed in
-            await withCheckedContinuation { continuation in
-                makeSut().get(from: makeUrl()) { result in
-                    receivedResult = result
-                    continuation.resume()
-                    
-                    completed()
-                }
+        await confirmationWithCheckedContinuation("Load completion", sourceLocation: sourceLocation) { completed in
+            makeSut().get(from: makeUrl()) { result in
+                receivedResult = result
+                completed()
             }
         }
         
