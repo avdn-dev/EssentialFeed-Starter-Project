@@ -21,7 +21,7 @@ public class URLSessionHTTPClient: HTTPClient {
             if let error {
                 completion(.failure(error))
             } else if let data, let response = response as? HTTPURLResponse {
-                completion(.success(data, response))
+                completion(.success((data, response)))
             } else {
                 completion(.failure(UnexpectedValuesRepresentationError()))
             }

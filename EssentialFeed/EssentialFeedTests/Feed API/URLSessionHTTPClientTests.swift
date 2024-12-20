@@ -101,7 +101,7 @@ final class URLSessionHTTPClientTests {
         let result = await resultFor(data: data, response: response, error: error)
         
         switch result {
-        case let .success(data, response):
+        case let .success((data, response)):
             return (data, response)
         default:
             Issue.record("Expected success, got \(result) instead", sourceLocation: sourceLocation)
