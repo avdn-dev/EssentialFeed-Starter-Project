@@ -35,12 +35,12 @@ struct EssentialFeedAPIEndToEndTests {
     }
     
     // MARK: Helpers
-    private func getFeedResult(sourceLocation: SourceLocation = #_sourceLocation) async -> LoadFeedResult? {
+    private func getFeedResult(sourceLocation: SourceLocation = #_sourceLocation) async -> FeedLoader.Result? {
         let testServerUrl = URL(string: "https://essentialdeveloper.com/feed-case-study/test-api/feed")!
         let client = URLSessionHTTPClient(session: URLSession(configuration: .ephemeral))
         let loader = RemoteFeedLoader(url: testServerUrl, client: client)
         
-        var receivedResult: LoadFeedResult?
+        var receivedResult: FeedLoader.Result?
         await confirmationWithCheckedContinuation("API call completed", sourceLocation: sourceLocation) { completed in
             loader.load { result in
                 receivedResult = result
