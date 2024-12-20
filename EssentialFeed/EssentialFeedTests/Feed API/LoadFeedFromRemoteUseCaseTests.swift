@@ -71,7 +71,7 @@ final class LoadFeedFromRemoteUseCaseTests {
         let (sut, client) = makeSUT()
         
         await expect(sut, toCompleteWithResult: failure(.invalidData)) {
-            let invalidJson = "invalid json".data(using: .utf8)!
+            let invalidJson = Data("invalid json".utf8)
             client.complete(withStatusCode: 200, data: invalidJson)
         }
     }

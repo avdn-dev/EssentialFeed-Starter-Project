@@ -91,7 +91,7 @@ final class URLSessionHTTPClientTests {
         return sut
     }
     
-    private func makeData() -> Data? { "any data".data(using: .utf8) }
+    private func makeData() -> Data { Data("any data".utf8) }
     
     private func makeHttpUrlResponse() -> HTTPURLResponse { HTTPURLResponse(url: makeUrl(), statusCode: 200, httpVersion: nil, headerFields: nil)! }
     
