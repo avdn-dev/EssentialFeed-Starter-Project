@@ -7,7 +7,7 @@
 
 import Foundation
 
-internal enum FeedCachePolicy {
+enum FeedCachePolicy {
     private static let calendar = Calendar(identifier: .gregorian)
     private static let maxCacheAgeInDays = 7
     

@@ -7,6 +7,6 @@
 
 import Foundation
 
-internal func makeUrl() -> URL { URL(string: "https://a-url.com")! }
+func makeUrl() -> URL { URL(string: "https://a-url.com")! }
 
-internal func makeNsError() -> NSError { NSError(domain: "any error", code: 1) }
+func makeNsError() -> NSError { NSError(domain: "any error", code: 1) }

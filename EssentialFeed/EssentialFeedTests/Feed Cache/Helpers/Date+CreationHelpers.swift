@@ -7,7 +7,7 @@
 
 import Foundation
 
-internal extension Date {
+extension Date {
     private var feedCacheMaxAgeInDays: Int { 7 }
     
     func minusCacheFeedMaxAge() -> Date { self.adding(days: -feedCacheMaxAgeInDays) }
@@ -15,6 +15,6 @@ internal extension Date {
     private func adding(days: Int) -> Date { Calendar(identifier: .gregorian).date(byAdding: .day, value: days, to: self)! }
 }
 
-internal extension Date {
+extension Date {
     func adding(seconds: TimeInterval) -> Date { self.addingTimeInterval(seconds) }
 }
