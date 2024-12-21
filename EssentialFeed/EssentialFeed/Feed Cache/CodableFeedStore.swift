@@ -48,12 +48,10 @@ public class CodableFeedStore: FeedStore {
             }
             
             let decoder = JSONDecoder()
-            do {
+            completion(Result {
                 let cache = try decoder.decode(Cache.self, from: data)
-                completion(.success(CachedFeed(feed: cache.localFeed, timestamp: cache.timestamp)))
-            } catch {
-                completion(.failure(error))
-            }
+                return CachedFeed(feed: cache.localFeed, timestamp: cache.timestamp)
+            })
         }
     }
     
@@ -61,15 +59,13 @@ public class CodableFeedStore: FeedStore {
         let storeUrl = self.storeUrl
         
         queue.async(flags: .barrier) {
-            do {
+            completion(Result {
                 let encoder = JSONEncoder()
                 let cache = Cache(feed: feed.map(CodableFeedImage.init), timestamp: timestamp)
                 let encoded = try encoder.encode(cache)
                 try encoded.write(to: storeUrl)
-                completion(.success(()))
-            } catch {
-                completion(.failure(error))
-            }
+                return
+            })
         }
     }
     
@@ -78,15 +74,14 @@ public class CodableFeedStore: FeedStore {
         
         queue.async(flags: .barrier) {
             guard FileManager.default.fileExists(atPath: storeUrl.path) else {
-                return completion(.success(()))
+                completion(.success(()))
+                return
             }
             
-            do {
+            completion(Result {
                 try FileManager.default.removeItem(at: storeUrl)
-                completion(.success(()))
-            } catch {
-                completion(.failure(error))
-            }
+                return
+            })
         }
     }
 }
