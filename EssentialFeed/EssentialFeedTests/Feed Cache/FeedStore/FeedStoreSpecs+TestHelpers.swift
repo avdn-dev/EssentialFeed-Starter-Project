@@ -14,11 +14,11 @@ extension FeedStoreSpecs {
         await withCheckedContinuation { continuation in
             sut.retrieve { retrievedResult in
                 switch (expectedResult, retrievedResult) {
-                case (.success(.empty), .success(.empty)), (.failure, .failure):
+                case (.success(.none), .success(.none)), (.failure, .failure):
                     break
-                case let (.success(.found(expectedFeed, expectedTimestamp)), .success(.found(retrievedFeed, retrievedTimestamp))):
-                    #expect(retrievedFeed == expectedFeed, sourceLocation: sourceLocation)
-                    #expect(retrievedTimestamp == expectedTimestamp, sourceLocation: sourceLocation)
+                case let (.success(.some(expectedCache)), .success(.some(retrievedCache))):
+                    #expect(retrievedCache.feed == expectedCache.feed, sourceLocation: sourceLocation)
+                    #expect(retrievedCache.timestamp == expectedCache.timestamp, sourceLocation: sourceLocation)
                 default:
                     Issue.record("Expected to retrieve \(expectedResult), got \(retrievedResult) instead", sourceLocation: sourceLocation)
                 }
@@ -61,11 +61,11 @@ extension FeedStoreSpecs {
     }
     
     func assertThatRetrieveDeliversNothingOnEmptyCache(on sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async {
-        await expect(sut, toRetrieve: .success(.empty), sourceLocation: sourceLocation)
+        await expect(sut, toRetrieve: .success(.none), sourceLocation: sourceLocation)
     }
     
     func assertThatRetrieveDeliversNothingOnEmptyCacheTwice(on sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async {
-        await expect(sut, toRetrieveTwice: .success(.empty), sourceLocation: sourceLocation)
+        await expect(sut, toRetrieveTwice: .success(.none), sourceLocation: sourceLocation)
     }
     
     func assertThatRetrieveDeliversInitiallyInsertedValues(on sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async {
@@ -74,7 +74,7 @@ extension FeedStoreSpecs {
         
         await insert((feed, timestamp), to: sut)
         
-        await expect(sut, toRetrieve: .success(.found(feed: feed, timestamp: timestamp)))
+        await expect(sut, toRetrieve: .success(CachedFeed(feed: feed, timestamp: timestamp)))
     }
     
     func assertThatRetrieveDeliversInitiallyInsertedValuesWithNoSideEffect(on sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async {
@@ -83,7 +83,7 @@ extension FeedStoreSpecs {
         
         await insert((feed, timestamp), to: sut)
         
-        await expect(sut, toRetrieveTwice: .success(.found(feed: feed, timestamp: timestamp)))
+        await expect(sut, toRetrieveTwice: .success(CachedFeed(feed: feed, timestamp: timestamp)))
     }
     
     func assertThatInsertDeliversNoErrorOnEmptyCache(on sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async {
@@ -107,7 +107,7 @@ extension FeedStoreSpecs {
         let latestTimestamp = Date()
         await insert((latestFeed, latestTimestamp), to: sut)
         
-        await expect(sut, toRetrieve: .success(.found(feed: latestFeed, timestamp: latestTimestamp)), sourceLocation: sourceLocation)
+        await expect(sut, toRetrieve: .success(CachedFeed(feed: latestFeed, timestamp: latestTimestamp)), sourceLocation: sourceLocation)
     }
     
     func assertThatDeleteDeliversNoErrorOnEmptyCache(on sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async {
@@ -119,7 +119,7 @@ extension FeedStoreSpecs {
     func assertThatDeleteHasNoSideEffectsOnEmptyCache(on sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async {
         _ = await deleteCache(from: sut)
 
-        await expect(sut, toRetrieve: .success(.empty), sourceLocation: sourceLocation)
+        await expect(sut, toRetrieve: .success(.none), sourceLocation: sourceLocation)
     }
     
     func assertThatDeleteDeliversNoErrorOnNonemptyCache(on sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async {
@@ -135,7 +135,7 @@ extension FeedStoreSpecs {
         
         _ = await deleteCache(from: sut)
         
-        await expect(sut, toRetrieve: .success(.empty), sourceLocation: sourceLocation)
+        await expect(sut, toRetrieve: .success(.none), sourceLocation: sourceLocation)
     }
     
     func assertThatStoreSideEffectsRunSerially(on sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async {
