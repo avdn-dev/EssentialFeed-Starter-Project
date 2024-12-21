@@ -37,10 +37,10 @@ struct EssentialFeedAPIEndToEndTests {
         let loader = RemoteFeedLoader(url: testServerUrl, client: client)
         
         var receivedResult: FeedLoader.Result?
-        await confirmationWithCheckedContinuation("API call completed", sourceLocation: sourceLocation) { completed in
+        await withCheckedContinuation { continuation in
             loader.load { result in
                 receivedResult = result
-                completed()
+                continuation.resume()
             }
         }
         

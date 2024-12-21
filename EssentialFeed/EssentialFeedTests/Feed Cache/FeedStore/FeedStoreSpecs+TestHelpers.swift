@@ -11,7 +11,7 @@ import Testing
 
 extension FeedStoreSpecs {
     func expect(_ sut: FeedStore, toRetrieve expectedResult: RetrieveCachedFeedResult, sourceLocation: SourceLocation = #_sourceLocation) async {
-        await confirmationWithCheckedContinuation("Retrieve completion", sourceLocation: sourceLocation) { completed in
+        await withCheckedContinuation { continuation in
             sut.retrieve { retrievedResult in
                 switch (expectedResult, retrievedResult) {
                 case (.empty, .empty), (.failure, .failure):
@@ -22,7 +22,8 @@ extension FeedStoreSpecs {
                 default:
                     Issue.record("Expected to retrieve \(expectedResult), got \(retrievedResult) instead", sourceLocation: sourceLocation)
                 }
-                completed()
+                
+                continuation.resume()
             }
         }
     }
@@ -36,10 +37,10 @@ extension FeedStoreSpecs {
     func insert(_ cache: (feed: [LocalFeedImage], timestamp: Date), to sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async -> Error? {
         var insertionError: Error?
         
-        await confirmationWithCheckedContinuation("Insert completion", sourceLocation: sourceLocation) { completed in
+        await withCheckedContinuation { continuation in
             sut.insert(cache.feed, at: cache.timestamp) { receivedInsertionError in
                 insertionError = receivedInsertionError
-                completed()
+                continuation.resume()
             }
         }
         
@@ -49,10 +50,10 @@ extension FeedStoreSpecs {
     func deleteCache(from sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async -> Error? {
         var deletionError: Error?
         
-        await confirmationWithCheckedContinuation("Delete completion", sourceLocation: sourceLocation) { completed in
+        await withCheckedContinuation { continuation in
             sut.deleteCachedFeed { receivedDeletionError in
                 deletionError = receivedDeletionError
-                completed()
+                continuation.resume()
             }
         }
         
