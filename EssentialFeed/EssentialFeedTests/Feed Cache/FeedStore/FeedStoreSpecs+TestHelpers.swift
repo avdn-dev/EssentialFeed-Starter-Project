@@ -10,7 +10,7 @@ import Foundation
 import Testing
 
 extension FeedStoreSpecs {
-    func expect(_ sut: FeedStore, toRetrieve expectedResult: RetrieveCachedFeedResult, sourceLocation: SourceLocation = #_sourceLocation) async {
+    func expect(_ sut: FeedStore, toRetrieve expectedResult: FeedStore.RetrievalResult, sourceLocation: SourceLocation = #_sourceLocation) async {
         await withCheckedContinuation { continuation in
             sut.retrieve { retrievedResult in
                 switch (expectedResult, retrievedResult) {
@@ -28,7 +28,7 @@ extension FeedStoreSpecs {
         }
     }
     
-    func expect(_ sut: FeedStore, toRetrieveTwice expectedResult: RetrieveCachedFeedResult, sourceLocation: SourceLocation = #_sourceLocation) async {
+    func expect(_ sut: FeedStore, toRetrieveTwice expectedResult: FeedStore.RetrievalResult, sourceLocation: SourceLocation = #_sourceLocation) async {
         await expect(sut, toRetrieve: expectedResult)
         await expect(sut, toRetrieve: expectedResult)
     }
