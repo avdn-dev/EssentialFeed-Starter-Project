@@ -11,13 +11,13 @@ protocol FeedStoreSpecs {
     func retrieveAfterInsertDeliversInsertedValues() async
     func retrieveAfterInsertDeliversInsertedValuesWithNoSideEffect() async
     
-    func insertDeliversNoErrorOnEmptyCache() async
-    func insertDeliversNoErrorOnNonemptyCache() async
+    func insertDeliversSuccessOnEmptyCache() async
+    func insertDeliversSuccessOnNonemptyCache() async
     func insertOverwritesPreviousCacheValues() async
     
-    func deleteDeliversNoErrorOnEmptyCache() async
+    func deleteDeliversSuccessOnEmptyCache() async
     func deleteHasNoSideEffectsOnEmptyCache() async
-    func deleteDeliversNoErrorOnNonemptyCache() async
+    func deleteDeliversSuccessOnNonemptyCache() async
     func deleteEmptiesPreviouslyInsertedCache() async
     
     func storeSideEffectsRunSerially() async

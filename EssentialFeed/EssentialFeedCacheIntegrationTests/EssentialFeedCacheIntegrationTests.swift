@@ -88,7 +88,7 @@ final class EssentialFeedCacheIntegrationTests {
                 case let .success(loadedFeed):
                     #expect(loadedFeed == expectedFeed, sourceLocation: sourceLocation)
                 case let .failure(error):
-                    Issue.record("Expected successful feed result, got \(error) instead")
+                    Issue.record("Expected successful feed result, got \(error) instead", sourceLocation: sourceLocation)
                 }
                 
                 continuation.resume()
@@ -98,8 +98,14 @@ final class EssentialFeedCacheIntegrationTests {
     
     private func save(_ feed: [FeedImage], with loader: LocalFeedLoader, sourceLocation: SourceLocation = #_sourceLocation) async {
         await withCheckedContinuation { continuation in
-            loader.save(feed) { saveError in
-                #expect(saveError == nil, sourceLocation: sourceLocation)
+            loader.save(feed) { saveResult in
+                switch saveResult {
+                case .success:
+                    break
+                case let .failure(error):
+                    Issue.record("Expected success, got \(error) instead", sourceLocation: sourceLocation)
+                }
+                
                 continuation.resume()
             }
         }

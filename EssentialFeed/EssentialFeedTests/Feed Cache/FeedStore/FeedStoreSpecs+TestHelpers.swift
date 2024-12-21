@@ -34,30 +34,30 @@ extension FeedStoreSpecs {
     }
     
     @discardableResult
-    func insert(_ cache: (feed: [LocalFeedImage], timestamp: Date), to sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async -> Error? {
-        var insertionError: Error?
+    func insert(_ cache: (feed: [LocalFeedImage], timestamp: Date), to sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async -> FeedStore.InsertionResult {
+        var insertionResult: FeedStore.InsertionResult!
         
         await withCheckedContinuation { continuation in
-            sut.insert(cache.feed, at: cache.timestamp) { receivedInsertionError in
-                insertionError = receivedInsertionError
+            sut.insert(cache.feed, at: cache.timestamp) { receivedInsertionResult in
+                insertionResult = receivedInsertionResult
                 continuation.resume()
             }
         }
         
-        return insertionError
+        return insertionResult
     }
     
-    func deleteCache(from sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async -> Error? {
-        var deletionError: Error?
+    func deleteCache(from sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async -> FeedStore.DeletionResult {
+        var deletionResult: FeedStore.DeletionResult!
         
         await withCheckedContinuation { continuation in
-            sut.deleteCachedFeed { receivedDeletionError in
-                deletionError = receivedDeletionError
+            sut.deleteCachedFeed { receivedDeletionResult in
+                deletionResult = receivedDeletionResult
                 continuation.resume()
             }
         }
         
-        return deletionError
+        return deletionResult
     }
     
     func assertThatRetrieveDeliversNothingOnEmptyCache(on sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async {
@@ -86,18 +86,28 @@ extension FeedStoreSpecs {
         await expect(sut, toRetrieveTwice: .success(CachedFeed(feed: feed, timestamp: timestamp)))
     }
     
-    func assertThatInsertDeliversNoErrorOnEmptyCache(on sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async {
-        let insertionError = await insert((makeUniqueImageFeed().local, Date()), to: sut)
+    func assertThatInsertDeliversSuccessOnEmptyCache(on sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async {
+        let insertionResult = await insert((makeUniqueImageFeed().local, Date()), to: sut)
         
-        #expect(insertionError == nil, sourceLocation: sourceLocation)
+        switch insertionResult {
+        case .success:
+            break
+        case let .failure(error):
+            Issue.record("Expected success, got \(error) instead", sourceLocation: sourceLocation)
+        }
     }
     
-    func assertThatInsertDeliversNoErrorOnNonemptyCache(on sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async {
+    func assertThatInsertDeliversSuccessOnNonemptyCache(on sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async {
         await insert((makeUniqueImageFeed().local, Date()), to: sut)
         
-        let insertionError = await insert((makeUniqueImageFeed().local, Date()), to: sut)
+        let insertionResult = await insert((makeUniqueImageFeed().local, Date()), to: sut)
         
-        #expect(insertionError == nil, sourceLocation: sourceLocation)
+        switch insertionResult {
+        case .success:
+            break
+        case let .failure(error):
+            Issue.record("Expected success, got \(error) instead", sourceLocation: sourceLocation)
+        }
     }
     
     func assertThatInsertOverwritesPreviousCacheValue(on sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async {
@@ -110,10 +120,15 @@ extension FeedStoreSpecs {
         await expect(sut, toRetrieve: .success(CachedFeed(feed: latestFeed, timestamp: latestTimestamp)), sourceLocation: sourceLocation)
     }
     
-    func assertThatDeleteDeliversNoErrorOnEmptyCache(on sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async {
-        let deletionError = await deleteCache(from: sut)
+    func assertThatDeleteDeliversSuccessOnEmptyCache(on sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async {
+        let deletionResult = await deleteCache(from: sut)
         
-        #expect(deletionError == nil, sourceLocation: sourceLocation)
+        switch deletionResult {
+        case .success:
+            break
+        case let .failure(error):
+            Issue.record("Expected success, got \(error) instead", sourceLocation: sourceLocation)
+        }
     }
     
     func assertThatDeleteHasNoSideEffectsOnEmptyCache(on sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async {
@@ -122,12 +137,17 @@ extension FeedStoreSpecs {
         await expect(sut, toRetrieve: .success(.none), sourceLocation: sourceLocation)
     }
     
-    func assertThatDeleteDeliversNoErrorOnNonemptyCache(on sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async {
+    func assertThatDeleteDeliversSuccessOnNonemptyCache(on sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async {
         await insert((makeUniqueImageFeed().local, Date()), to: sut)
         
-        let deletionError = await deleteCache(from: sut)
+        let deletionResult = await deleteCache(from: sut)
         
-        #expect(deletionError == nil, sourceLocation: sourceLocation)
+        switch deletionResult {
+        case .success:
+            break
+        case let .failure(error):
+            Issue.record("Expected success, got \(error) instead", sourceLocation: sourceLocation)
+        }
     }
     
     func assertThatDeleteEmptiesPreviouslyInsertedCache(on sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async {

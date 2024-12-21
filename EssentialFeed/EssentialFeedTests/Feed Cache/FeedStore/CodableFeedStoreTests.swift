@@ -70,18 +70,18 @@ final class CodableFeedStoreTests: FailableFeedStore {
         await assertThatRetrieveDeliversFailureOnRetrievalErrorWithNoSideEffect(on: sut)
     }
     
-    @Test("Insert delivers no error on empty cache")
-    func insertDeliversNoErrorOnEmptyCache() async {
+    @Test("Insert delivers success on empty cache")
+    func insertDeliversSuccessOnEmptyCache() async {
         let sut = makeSut()
         
-        await assertThatInsertDeliversNoErrorOnEmptyCache(on: sut)
+        await assertThatInsertDeliversSuccessOnEmptyCache(on: sut)
     }
     
-    @Test("Insert delivers no error on nonempty cache")
-    func insertDeliversNoErrorOnNonemptyCache() async {
+    @Test("Insert delivers success on nonempty cache")
+    func insertDeliversSuccessOnNonemptyCache() async {
         let sut = makeSut()
         
-        await assertThatInsertDeliversNoErrorOnNonemptyCache(on: sut)
+        await assertThatInsertDeliversSuccessOnNonemptyCache(on: sut)
     }
     
     @Test("Insert overwrites previously inserted cache values")
@@ -107,11 +107,11 @@ final class CodableFeedStoreTests: FailableFeedStore {
         await assertThatInsertDeliversErrorOnInsertionErrorWithNoSideEffect(on: sut)
     }
     
-    @Test("Delete delivers no error on empty cache")
-    func deleteDeliversNoErrorOnEmptyCache() async {
+    @Test("Delete delivers success on empty cache")
+    func deleteDeliversSuccessOnEmptyCache() async {
         let sut = makeSut()
         
-        await assertThatDeleteDeliversNoErrorOnEmptyCache(on: sut)
+        await assertThatDeleteDeliversSuccessOnEmptyCache(on: sut)
     }
     
     @Test("Delete has no side effects on empty cache")
@@ -121,11 +121,11 @@ final class CodableFeedStoreTests: FailableFeedStore {
         await assertThatDeleteHasNoSideEffectsOnEmptyCache(on: sut)
     }
     
-    @Test("Delete delivers no error on nonempty cache")
-    func deleteDeliversNoErrorOnNonemptyCache() async {
+    @Test("Delete delivers success on nonempty cache")
+    func deleteDeliversSuccessOnNonemptyCache() async {
         let sut = makeSut()
         
-        await assertThatDeleteDeliversNoErrorOnNonemptyCache(on: sut)
+        await assertThatDeleteDeliversSuccessOnNonemptyCache(on: sut)
     }
     
     @Test("Delete empties previously inserted cache")

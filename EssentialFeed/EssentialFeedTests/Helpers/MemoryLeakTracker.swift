@@ -12,6 +12,6 @@ struct MemoryLeakTracker<T: AnyObject> {
     var sourceLocation: SourceLocation
     
     func verifyDeallocation() {
-        #expect(instance == nil, "Expected \(instance) to be deallocated", sourceLocation: sourceLocation)
+        #expect(instance == nil, "Expected \(instance!) to be deallocated", sourceLocation: sourceLocation)
     }
 }

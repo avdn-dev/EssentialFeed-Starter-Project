@@ -62,7 +62,7 @@ final class CacheFeedUseCaseTests {
         let (sut, store) = makeSut()
         let deletionError = makeNsError()
         
-        await expect(sut, toCompleteWithError: deletionError) {
+        await expect(sut, toCompleteWithResult: .failure(deletionError)) {
             store.completeDeletion(with: deletionError)
         }
     }
@@ -72,7 +72,7 @@ final class CacheFeedUseCaseTests {
         let (sut, store) = makeSut()
         let insertionError = makeNsError()
         
-        await expect(sut, toCompleteWithError: insertionError) {
+        await expect(sut, toCompleteWithResult: .failure(insertionError)) {
             store.completeDeletionSuccessfully()
             store.completeInsertion(with: insertionError)
         }
@@ -82,7 +82,7 @@ final class CacheFeedUseCaseTests {
     func saveSucceedsOnSuccessfulCacheInsertion() async {
         let (sut, store) = makeSut()
         
-        await expect(sut, toCompleteWithError: nil) {
+        await expect(sut, toCompleteWithResult: .success(())) {
             store.completeDeletionSuccessfully()
             store.completeInsertionSuccessfully()
         }
@@ -126,18 +126,25 @@ final class CacheFeedUseCaseTests {
         return (sut, store)
     }
     
-    private func expect(_ sut: LocalFeedLoader, toCompleteWithError expectedError: NSError?, when action: () -> Void, sourceLocation: SourceLocation = #_sourceLocation) async {
-        var receivedError: Error?
+    private func expect(_ sut: LocalFeedLoader, toCompleteWithResult expectedResult: LocalFeedLoader.SaveResult, when action: () -> Void, sourceLocation: SourceLocation = #_sourceLocation) async {
+        var receivedResult: LocalFeedLoader.SaveResult!
         
         await withCheckedContinuation { continuation in
-            sut.save(makeUniqueImageFeed().models) { error in
-                receivedError = error
+            sut.save(makeUniqueImageFeed().models) { result in
+                receivedResult = result
                 continuation.resume()
             }
             
             action()
         }
         
-        #expect(receivedError as? NSError == expectedError, sourceLocation: sourceLocation)
+        switch (receivedResult, expectedResult) {
+        case (.success, .success):
+            break
+        case let (.failure(receivedError), .failure(expectedError)):
+            #expect(receivedError as NSError == expectedError as NSError, sourceLocation: sourceLocation)
+        default:
+            Issue.record("Expected result \(expectedResult), got \(receivedResult!) instead", sourceLocation: sourceLocation)
+        }
     }
 }
