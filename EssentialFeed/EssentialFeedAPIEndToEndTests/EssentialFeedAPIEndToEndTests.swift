@@ -9,10 +9,6 @@ import EssentialFeed
 import Testing
 import Foundation
 
-private extension Duration {
-    static var networkWaitTime: Self { .seconds(5) }
-}
-
 struct EssentialFeedAPIEndToEndTests {
     @Test("End to end test server GET feed result matches fixed test account data")
     func endToEndServerGetFeedResultMatchesFixedTestAccount() async {
