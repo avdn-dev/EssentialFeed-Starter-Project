@@ -216,8 +216,8 @@
 		960F8E482D1025160060CC1E /* Feed Cache */ = {
 			isa = PBXGroup;
 			children = (
-				960F8E492D10251E0060CC1E /* LocalFeedLoader.swift */,
 				960F8E4B2D1025820060CC1E /* FeedStore.swift */,
+				960F8E492D10251E0060CC1E /* LocalFeedLoader.swift */,
 				960F8E4D2D1036ED0060CC1E /* LocalFeedImage.swift */,
 				960F8E612D117A9C0060CC1E /* FeedCachePolicy.swift */,
 				960F8E652D11F5C30060CC1E /* CodableFeedStore.swift */,

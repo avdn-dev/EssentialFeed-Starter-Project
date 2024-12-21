@@ -19,7 +19,7 @@ extension FailableInsertFeedStoreSpecs {
     func assertThatInsertDeliversErrorOnInsertionErrorWithNoSideEffect(on sut: FeedStore, sourceLocation: SourceLocation = #_sourceLocation) async {
         await insert((makeUniqueImageFeed().local  , Date()), to: sut)
         
-        await expect(sut, toRetrieve: .empty, sourceLocation: sourceLocation)
+        await expect(sut, toRetrieve: .success(.empty), sourceLocation: sourceLocation)
     }
 }
 
