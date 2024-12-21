@@ -121,10 +121,10 @@ final class URLSessionHTTPClientTests {
         }
     }
     
-    private func resultFor(data: Data?, response: URLResponse?, error: Error?, sourceLocation: SourceLocation = #_sourceLocation) async -> HTTPClientResult {
+    private func resultFor(data: Data?, response: URLResponse?, error: Error?, sourceLocation: SourceLocation = #_sourceLocation) async -> HTTPClient.Result {
         URLProtocolStub.stub(data: data, response: response, error: error)
         
-        var receivedResult: HTTPClientResult!
+        var receivedResult: HTTPClient.Result!
         
         await confirmationWithCheckedContinuation("Load completion", sourceLocation: sourceLocation) { completed in
             makeSut().get(from: makeUrl()) { result in
