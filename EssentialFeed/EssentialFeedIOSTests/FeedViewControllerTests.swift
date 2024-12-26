@@ -24,8 +24,9 @@ final class FeedViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        refreshControl = UIRefreshControl()
+        refreshControl = MockUIRefreshControl()
         refreshControl?.addTarget(self, action: #selector(load), for: .valueChanged)
+        refreshControl?.beginRefreshing()
         load()
     }
     
@@ -72,6 +73,15 @@ final class FeedViewControllerTests {
         #expect(loader.loadCallCount == 3)
     }
     
+    @Test("viewDidLoad shows loading indicator")
+    func viewDidLoadShowsLoadingIndicator() {
+        let (sut, _) = makeSut()
+        
+        sut.loadViewIfNeeded()
+        
+        #expect(sut.refreshControl?.isRefreshing == true)
+    }
+    
     // MARK: Helpers
     func makeSut(sourceLocation: SourceLocation = #_sourceLocation) -> (sut: FeedViewController, loader: LoaderSpy) {
         let loader = LoaderSpy()
@@ -87,6 +97,20 @@ final class FeedViewControllerTests {
         func load(completion: @escaping (FeedLoader.Result) -> Void) {
             loadCallCount += 1
         }
+    }
+}
+
+private class MockUIRefreshControl: UIRefreshControl {
+    private var _isRefreshing = false
+    
+    override var isRefreshing: Bool { _isRefreshing }
+    
+    override func beginRefreshing() {
+        _isRefreshing = true
+    }
+    
+    override func endRefreshing() {
+        _isRefreshing = false
     }
 }
 
