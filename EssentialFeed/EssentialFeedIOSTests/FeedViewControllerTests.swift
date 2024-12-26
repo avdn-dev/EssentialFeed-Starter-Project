@@ -25,23 +25,38 @@ final class FeedViewController: UIViewController {
 }
 
 @MainActor
-struct FeedViewControllerTests {
+final class FeedViewControllerTests {
+    private var sutTracker: MemoryLeakTracker<FeedViewController>?
+    private var loaderTracker: MemoryLeakTracker<LoaderSpy>?
+    
+    deinit {
+        sutTracker?.verifyDeallocation()
+        loaderTracker?.verifyDeallocation()
+    }
+    
     @Test("Initialiser does not load feed")
     func initialiserDoesNotLoadFeed() {
-        let loader = LoaderSpy()
-        _ = FeedViewController(loader: loader)
+        let (_, loader) = makeSut()
         
         #expect(loader.loadCallCount == 0)
     }
     
     @Test("viewDidLoad call loads feed")
     func viewDidLoadLoadsFeed() {
-        let loader = LoaderSpy()
-        let sut = FeedViewController(loader: loader)
+        let (sut, loader) = makeSut()
         
         sut.loadViewIfNeeded()
         
         #expect(loader.loadCallCount == 1)
+    }
+    
+    // MARK: Helpers
+    func makeSut(sourceLocation: SourceLocation = #_sourceLocation) -> (sut: FeedViewController, loader: LoaderSpy) {
+        let loader = LoaderSpy()
+        let sut = FeedViewController(loader: loader)
+        sutTracker = MemoryLeakTracker(instance: sut, sourceLocation: sourceLocation)
+        loaderTracker = MemoryLeakTracker(instance: loader, sourceLocation: sourceLocation)
+        return (sut, loader)
     }
     
     class LoaderSpy: FeedLoader {
