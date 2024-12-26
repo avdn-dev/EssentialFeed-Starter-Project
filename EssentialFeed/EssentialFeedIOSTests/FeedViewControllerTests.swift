@@ -94,6 +94,25 @@ final class FeedViewControllerTests {
         #expect(sut.refreshControl?.isRefreshing == false)
     }
     
+    @Test("Pull to refresh shows loading indicator")
+    func pullToRefreshShowsLoadingIndicator() {
+        let (sut, _) = makeSut()
+        
+        sut.refreshControl?.simulatePullToRefresh()
+        
+        #expect(sut.refreshControl?.isRefreshing == true)
+    }
+    
+    @Test("Pull to refresh hides loading indicator on loader completion")
+    func pullToRefreshHidesLoadingIndicatorOnLoaderCommpletion() {
+        let (sut, loader) = makeSut()
+        
+        sut.refreshControl?.simulatePullToRefresh()
+        loader.completeFeedLoading()
+        
+        #expect(sut.refreshControl?.isRefreshing == false)
+    }
+    
     // MARK: Helpers
     func makeSut(sourceLocation: SourceLocation = #_sourceLocation) -> (sut: FeedViewController, loader: LoaderSpy) {
         let loader = LoaderSpy()
