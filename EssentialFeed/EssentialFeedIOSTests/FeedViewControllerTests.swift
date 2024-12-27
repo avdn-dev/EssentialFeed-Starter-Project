@@ -63,8 +63,8 @@ final class FeedViewControllerTests {
         #expect(loader.loadCallCount == 1)
     }
     
-    @Test("Pull to refresh loads feed")
-    func pullToRefreshLoadsFeed() {
+    @Test("User initiated feed reload loads feed")
+    func userInitiatedFeedReloadLoadsFeed() {
         let (sut, loader) = makeSut()
         sut.loadViewIfNeeded()
         
@@ -94,8 +94,8 @@ final class FeedViewControllerTests {
         #expect(sut.refreshControl?.isRefreshing == false)
     }
     
-    @Test("Pull to refresh shows loading indicator")
-    func pullToRefreshShowsLoadingIndicator() {
+    @Test("User initiated feed reload shows loading indicator")
+    func userInitiatedFeedReloadShowsLoadingIndicator() {
         let (sut, _) = makeSut()
         
         sut.refreshControl?.simulatePullToRefresh()
@@ -103,8 +103,8 @@ final class FeedViewControllerTests {
         #expect(sut.refreshControl?.isRefreshing == true)
     }
     
-    @Test("Pull to refresh hides loading indicator on loader completion")
-    func pullToRefreshHidesLoadingIndicatorOnLoaderCommpletion() {
+    @Test("User initiated feed reload hides loading indicator on loader completion")
+    func userInitiatedFeedReloadHidesLoadingIndicatorOnLoaderCommpletion() {
         let (sut, loader) = makeSut()
         
         sut.refreshControl?.simulatePullToRefresh()
@@ -158,5 +158,11 @@ private extension UIRefreshControl {
                 (target as NSObject).perform(Selector(action))
             }
         }
+    }
+}
+
+extension FeedViewController {
+    func simulateUserInitiatedFeedReload() {
+        refreshControl?.simulatePullToRefresh()
     }
 }
