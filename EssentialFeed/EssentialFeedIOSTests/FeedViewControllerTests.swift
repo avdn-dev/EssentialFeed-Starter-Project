@@ -68,10 +68,10 @@ final class FeedViewControllerTests {
         let (sut, loader) = makeSut()
         sut.loadViewIfNeeded()
         
-        sut.refreshControl?.simulatePullToRefresh()
+        sut.simulateUserInitiatedFeedReload()
         #expect(loader.loadCallCount == 2)
         
-        sut.refreshControl?.simulatePullToRefresh()
+        sut.simulateUserInitiatedFeedReload()
         #expect(loader.loadCallCount == 3)
     }
     
@@ -81,7 +81,7 @@ final class FeedViewControllerTests {
         
         sut.loadViewIfNeeded()
         
-        #expect(sut.refreshControl?.isRefreshing == true)
+        #expect(sut.isShowingLoadIndicator)
     }
     
     @Test("viewDidLoad hides loading indicator on loader completion")
@@ -91,26 +91,26 @@ final class FeedViewControllerTests {
         sut.loadViewIfNeeded()
         loader.completeFeedLoading()
         
-        #expect(sut.refreshControl?.isRefreshing == false)
+        #expect(!sut.isShowingLoadIndicator)
     }
     
     @Test("User initiated feed reload shows loading indicator")
     func userInitiatedFeedReloadShowsLoadingIndicator() {
         let (sut, _) = makeSut()
         
-        sut.refreshControl?.simulatePullToRefresh()
+        sut.simulateUserInitiatedFeedReload()
         
-        #expect(sut.refreshControl?.isRefreshing == true)
+        #expect(sut.isShowingLoadIndicator)
     }
     
     @Test("User initiated feed reload hides loading indicator on loader completion")
     func userInitiatedFeedReloadHidesLoadingIndicatorOnLoaderCommpletion() {
         let (sut, loader) = makeSut()
         
-        sut.refreshControl?.simulatePullToRefresh()
+        sut.simulateUserInitiatedFeedReload()
         loader.completeFeedLoading()
         
-        #expect(sut.refreshControl?.isRefreshing == false)
+        #expect(!sut.isShowingLoadIndicator)
     }
     
     // MARK: Helpers
@@ -165,4 +165,6 @@ extension FeedViewController {
     func simulateUserInitiatedFeedReload() {
         refreshControl?.simulatePullToRefresh()
     }
+    
+    var isShowingLoadIndicator: Bool { refreshControl?.isRefreshing == true }
 }
