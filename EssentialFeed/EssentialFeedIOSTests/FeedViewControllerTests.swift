@@ -10,11 +10,13 @@ import Testing
 import UIKit
 
 final class FeedViewController: UITableViewController {
-    private var loader: FeedLoader?
+    private var loader: FeedLoader!
+    private var makeRefreshControl: (() -> UIRefreshControl)!
     
-    convenience init(loader: FeedLoader) {
+    convenience init(loader: FeedLoader, makeRefreshControl: @escaping (() -> UIRefreshControl) = UIRefreshControl.init) {
         self.init()
         self.loader = loader
+        self.makeRefreshControl = makeRefreshControl
     }
     
     deinit {
@@ -24,14 +26,14 @@ final class FeedViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        refreshControl = MockUIRefreshControl()
+        refreshControl = makeRefreshControl()
         refreshControl?.addTarget(self, action: #selector(load), for: .valueChanged)
         load()
     }
     
     @objc private func load() {
         refreshControl?.beginRefreshing()
-        loader?.load { [weak self] _ in
+        loader.load { [weak self] _ in
             self?.refreshControl?.endRefreshing()
         }
     }
@@ -82,7 +84,7 @@ final class FeedViewControllerTests {
     // MARK: Helpers
     func makeSut(sourceLocation: SourceLocation = #_sourceLocation) -> (sut: FeedViewController, loader: LoaderSpy) {
         let loader = LoaderSpy()
-        let sut = FeedViewController(loader: loader)
+        let sut = FeedViewController(loader: loader, makeRefreshControl: MockUIRefreshControl.init)
         sutTracker = MemoryLeakTracker(instance: sut, sourceLocation: sourceLocation)
         loaderTracker = MemoryLeakTracker(instance: loader, sourceLocation: sourceLocation)
         return (sut, loader)
