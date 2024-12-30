@@ -36,7 +36,6 @@
 		960F8E902D1462AE0060CC1E /* SharedFactories.swift in Sources */ = {isa = PBXBuildFile; fileRef = 960F8E5F2D1154610060CC1E /* SharedFactories.swift */; };
 		966173892D0B3F8E00EF2077 /* URLSessionHTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 966173882D0B3F8E00EF2077 /* URLSessionHTTPClient.swift */; };
 		966173922D0B430F00EF2077 /* EssentialFeed.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 080EDEF121B6DA7E00813479 /* EssentialFeed.framework */; };
-		9699755F2D1D59FA00B4A330 /* EssentialFeedIOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 969975572D1D59FA00B4A330 /* EssentialFeedIOS.framework */; };
 		969975B22D1D6D7100B4A330 /* MemoryLeakTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 960F8E3D2D0D2BD90060CC1E /* MemoryLeakTracker.swift */; };
 		96E521A02D0A915A000695AB /* HTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96E5219F2D0A915A000695AB /* HTTPClient.swift */; };
 		96E521A22D0A91BD000695AB /* FeedItemsMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96E521A12D0A91BD000695AB /* FeedItemsMapper.swift */; };
@@ -66,13 +65,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = 080EDEF021B6DA7E00813479;
 			remoteInfo = EssentialFeed;
-		};
-		969975602D1D59FA00B4A330 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 080EDEE821B6DA7E00813479 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 969975562D1D59FA00B4A330;
-			remoteInfo = EssentialFeedIOS;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -170,7 +162,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9699755F2D1D59FA00B4A330 /* EssentialFeedIOS.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -190,6 +181,7 @@
 				960F8E7D2D13A0350060CC1E /* EssentialFeedCacheIntegrationTests */,
 				969975582D1D59FA00B4A330 /* EssentialFeedIOS */,
 				969975622D1D59FA00B4A330 /* EssentialFeedIOSTests */,
+				9699766D2D2308AA00B4A330 /* Frameworks */,
 				080EDEF221B6DA7E00813479 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -293,6 +285,13 @@
 				960F8E762D1333AD0060CC1E /* FailableDeleteFeedStoreSpecs+Assertions.swift */,
 			);
 			path = FeedStore;
+			sourceTree = "<group>";
+		};
+		9699766D2D2308AA00B4A330 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 		96E521A32D0AC682000695AB /* Feed API */ = {
@@ -452,7 +451,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				969975612D1D59FA00B4A330 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				969975622D1D59FA00B4A330 /* EssentialFeedIOSTests */,
@@ -491,6 +489,7 @@
 					};
 					969975562D1D59FA00B4A330 = {
 						CreatedOnToolsVersion = 16.2;
+						LastSwiftMigration = 1620;
 					};
 					9699755D2D1D59FA00B4A330 = {
 						CreatedOnToolsVersion = 16.2;
@@ -658,11 +657,6 @@
 			isa = PBXTargetDependency;
 			target = 080EDEF021B6DA7E00813479 /* EssentialFeed */;
 			targetProxy = 966173932D0B430F00EF2077 /* PBXContainerItemProxy */;
-		};
-		969975612D1D59FA00B4A330 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 969975562D1D59FA00B4A330 /* EssentialFeedIOS */;
-			targetProxy = 969975602D1D59FA00B4A330 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1011,6 +1005,7 @@
 			buildSettings = {
 				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
@@ -1044,6 +1039,7 @@
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
@@ -1054,6 +1050,7 @@
 			buildSettings = {
 				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
